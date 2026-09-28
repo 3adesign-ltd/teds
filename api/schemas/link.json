@@ -1,0 +1,56 @@
+{
+    "allOf": [
+        {
+            "$ref": "link-fields.json"
+        },
+        {
+            "type": "object",
+            "required": [
+                "id",
+                "entity_id",
+                "origin",
+                "created",
+                "created_by"
+            ],
+            "properties": {
+                "id": {
+                    "$ref": "uuid.json"
+                },
+                "entity_id": {
+                    "$ref": "uuid.json"
+                },
+                "origin": {
+                    "$ref": "origin.json"
+                },
+                "open": {
+                    "type": "boolean",
+                    "readOnly": true,
+                    "description": "The validity has no end."
+                },
+                "closed_reason": {
+                    "type": "string",
+                    "enum": [
+                        "superseded",
+                        "target_deleted",
+                        "manual",
+                        "role_removed"
+                    ]
+                },
+                "created": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "updated": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by": {
+                    "type": "string"
+                }
+            }
+        }
+    ]
+}

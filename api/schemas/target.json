@@ -1,0 +1,20 @@
+{
+    "type": "object",
+    "required": [
+        "kind",
+        "id"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "kind": {
+            "$ref": "target-kind.json"
+        },
+        "id": {
+            "$ref": "uuid.json"
+        },
+        "service": {
+            "type": "string",
+            "description": "Which configured TAMS/TADS instance, when TEDS is given more than one (`TEDS_STORES`). Omitted = the default."
+        }
+    }
+}

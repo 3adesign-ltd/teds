@@ -1,0 +1,21 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "label": {
+            "type": "string"
+        },
+        "description": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "tags": {
+            "type": "object"
+        },
+        "metadata": {
+            "type": "object"
+        }
+    }
+}

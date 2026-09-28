@@ -1,0 +1,25 @@
+{
+    "type": "object",
+    "required": [
+        "definition"
+    ],
+    "properties": {
+        "label": {
+            "type": "string",
+            "description": "Defaults to the definition's `label`."
+        },
+        "description": {
+            "type": "string"
+        },
+        "tags": {
+            "$ref": "tags.json"
+        },
+        "deprecated": {
+            "type": "boolean",
+            "default": false
+        },
+        "definition": {
+            "$ref": "definition.json"
+        }
+    }
+}

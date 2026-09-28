@@ -1,0 +1,9 @@
+{
+    "description": "The request body — the link fields and nothing else.",
+    "allOf": [
+        {
+            "$ref": "link-fields.json"
+        }
+    ],
+    "unevaluatedProperties": false
+}

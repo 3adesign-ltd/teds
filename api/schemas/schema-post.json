@@ -1,0 +1,9 @@
+{
+    "description": "The request body — the schema fields and nothing else.",
+    "allOf": [
+        {
+            "$ref": "schema-fields.json"
+        }
+    ],
+    "unevaluatedProperties": false
+}

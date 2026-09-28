@@ -1,0 +1,35 @@
+{
+    "type": "object",
+    "required": [
+        "role",
+        "store",
+        "target",
+        "valid"
+    ],
+    "properties": {
+        "role": {
+            "$ref": "role.json"
+        },
+        "key": {
+            "$ref": "key.json"
+        },
+        "tier": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Bucket seconds of a rollup (tier) track; omitted for the base."
+        },
+        "store": {
+            "$ref": "store.json"
+        },
+        "target": {
+            "$ref": "target.json"
+        },
+        "valid": {
+            "$ref": "timerange.json"
+        },
+        "evidence": {
+            "type": "string",
+            "description": "Why this link exists, in words."
+        }
+    }
+}

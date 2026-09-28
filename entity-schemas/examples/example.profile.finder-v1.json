@@ -1,0 +1,66 @@
+{
+    "id": "f5d6b3fe-786a-50e4-94e3-58479c019d69",
+    "label": "Finder settings",
+    "description": "Per-user settings for a finder shared by several viewers, so a sort or view chosen in one is kept in the others. One entity per user (docs/appnotes/0004).",
+    "tags": {},
+    "definition": {
+        "$teds": "entity-schema/1",
+        "family": "example.profile.finder",
+        "version": 1,
+        "label": "Finder settings",
+        "description": "Per-user settings for a finder shared by several viewers, so a sort or view chosen in one is kept in the others. One entity per user (docs/appnotes/0004).",
+        "metadata": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "view": {
+                    "enum": [
+                        "list",
+                        "grid"
+                    ],
+                    "default": "list"
+                },
+                "sort": {
+                    "enum": [
+                        "activity",
+                        "name",
+                        "length",
+                        "updated"
+                    ],
+                    "default": "activity"
+                },
+                "tab": {
+                    "enum": [
+                        "all",
+                        "live",
+                        "favourites",
+                        "recent"
+                    ],
+                    "default": "all"
+                },
+                "timeFormat": {
+                    "enum": [
+                        "24h",
+                        "12h"
+                    ],
+                    "default": "24h"
+                },
+                "timezone": {
+                    "type": "string",
+                    "title": "Display timezone (IANA); empty = the channel's own",
+                    "default": ""
+                },
+                "hiddenFacets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true,
+                    "default": []
+                }
+            }
+        },
+        "roles": []
+    }
+}

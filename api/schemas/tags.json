@@ -1,0 +1,17 @@
+{
+    "type": "object",
+    "description": "Free-form. Names starting `teds.` are reserved for the server.",
+    "additionalProperties": {
+        "anyOf": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        ]
+    }
+}

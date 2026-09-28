@@ -1,0 +1,31 @@
+{
+    "type": "object",
+    "description": "Every condition given must hold (AND). An entity joins or leaves as its metadata/tags change.",
+    "additionalProperties": false,
+    "minProperties": 1,
+    "properties": {
+        "type": {
+            "$ref": "family.json"
+        },
+        "facets": {
+            "type": "object",
+            "description": "facet name → accepted values.",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        },
+        "tags": {
+            "type": "object",
+            "description": "tag name → accepted values.",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

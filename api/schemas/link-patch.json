@@ -1,0 +1,12 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "valid": {
+            "$ref": "timerange.json"
+        },
+        "evidence": {
+            "type": "string"
+        }
+    }
+}

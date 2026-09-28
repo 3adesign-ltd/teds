@@ -1,0 +1,60 @@
+{
+    "allOf": [
+        {
+            "$ref": "entity-fields.json"
+        },
+        {
+            "type": "object",
+            "required": [
+                "id",
+                "family",
+                "created",
+                "created_by"
+            ],
+            "properties": {
+                "id": {
+                    "$ref": "uuid.json"
+                },
+                "family": {
+                    "$ref": "family.json"
+                },
+                "version": {
+                    "type": "integer",
+                    "description": "The schema version."
+                },
+                "collections": {
+                    "type": "array",
+                    "readOnly": true,
+                    "description": "Collections the entity is in (static and rule).",
+                    "items": {
+                        "$ref": "uuid.json"
+                    }
+                },
+                "complete": {
+                    "type": "boolean",
+                    "readOnly": true,
+                    "description": "Every required role and expected key is present now (see `/status`)."
+                },
+                "live": {
+                    "type": "boolean",
+                    "readOnly": true,
+                    "description": "Its `av` (or first `timeBounded` required) link is open and its target's timerange reaches within 120 s of now."
+                },
+                "created": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "updated": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by": {
+                    "type": "string"
+                }
+            }
+        }
+    ]
+}

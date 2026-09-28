@@ -1,0 +1,27 @@
+{
+    "allOf": [
+        {
+            "$ref": "collection-fields.json"
+        },
+        {
+            "type": "object",
+            "required": [
+                "id",
+                "created"
+            ],
+            "properties": {
+                "id": {
+                    "$ref": "uuid.json"
+                },
+                "member_count": {
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "created": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    ]
+}

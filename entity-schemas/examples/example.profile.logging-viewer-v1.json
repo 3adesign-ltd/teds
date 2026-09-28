@@ -1,0 +1,128 @@
+{
+    "id": "29a9182e-c995-58cd-8345-d98c130c4099",
+    "label": "Logging viewer settings",
+    "description": "Per-user settings for a compliance/logging viewer: what is on screen, which timeline lanes show, the audio meters, and the finder default. One entity per user (docs/appnotes/0004). Device-local settings such as panel widths are deliberately not here.",
+    "tags": {},
+    "definition": {
+        "$teds": "entity-schema/1",
+        "family": "example.profile.logging-viewer",
+        "version": 1,
+        "label": "Logging viewer settings",
+        "description": "Per-user settings for a compliance/logging viewer: what is on screen, which timeline lanes show, the audio meters, and the finder default. One entity per user (docs/appnotes/0004). Device-local settings such as panel widths are deliberately not here.",
+        "metadata": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "show": {
+                    "type": "object",
+                    "title": "What is on screen",
+                    "additionalProperties": false,
+                    "properties": {
+                        "panel": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Side panel"
+                        },
+                        "overview": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Overview strip"
+                        },
+                        "timeline": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Timeline"
+                        }
+                    }
+                },
+                "lanes": {
+                    "type": "object",
+                    "title": "Timeline lanes",
+                    "additionalProperties": false,
+                    "properties": {
+                        "date": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Date"
+                        },
+                        "ruler": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Timecode ruler"
+                        },
+                        "thumbnails": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Thumbnails"
+                        },
+                        "metadata": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Metadata"
+                        },
+                        "audio": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Audio"
+                        },
+                        "subtitles": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Subtitles"
+                        },
+                        "clips": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Export marks"
+                        }
+                    }
+                },
+                "meters": {
+                    "type": "object",
+                    "title": "Audio meters",
+                    "additionalProperties": false,
+                    "properties": {
+                        "placement": {
+                            "enum": [
+                                "off",
+                                "left",
+                                "right",
+                                "split",
+                                "over",
+                                "over-split"
+                            ],
+                            "default": "over-split"
+                        },
+                        "muted": {
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "L",
+                                    "R"
+                                ]
+                            },
+                            "uniqueItems": true,
+                            "default": []
+                        }
+                    }
+                },
+                "finder": {
+                    "type": "object",
+                    "title": "Finder",
+                    "additionalProperties": false,
+                    "properties": {
+                        "defaultStartBackSec": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 604800,
+                            "default": 1800,
+                            "title": "Default start, seconds before the live edge"
+                        }
+                    }
+                }
+            }
+        },
+        "roles": []
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "type": "urn:x-teds:service",
+    "api_version": "0.1",
+    "service_version": "0.1.0",
+    "name": "TEDS",
+    "contract_version": "1",
+    "role_vocabulary_version": "1"
+}

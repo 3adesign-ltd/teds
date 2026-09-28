@@ -1,0 +1,193 @@
+{
+    "$comment": "The TEDS role vocabulary, version 1. docs/appnotes/0002 explains it; tools/validate.py and every server read it. Adding a role is a vocabulary version bump.",
+    "version": "1",
+    "roles": [
+        {
+            "role": "av",
+            "store": "tams",
+            "kind": "flow",
+            "timeline": "image",
+            "meaning": "Primary picture+sound (e.g. MPEG-TS `format:multi`)"
+        },
+        {
+            "role": "video",
+            "store": "tams",
+            "kind": "flow",
+            "timeline": "image",
+            "meaning": "Primary picture when stored apart from sound"
+        },
+        {
+            "role": "audio",
+            "store": "tams",
+            "kind": "flow",
+            "key": "programme",
+            "meaning": "Primary sound when stored apart from picture"
+        },
+        {
+            "role": "proxy",
+            "store": "tams",
+            "kind": "flow",
+            "timeline": "image",
+            "meaning": "Browse proxy"
+        },
+        {
+            "role": "mezzanine",
+            "store": "tams",
+            "kind": "flow",
+            "timeline": "image",
+            "meaning": "Edit-quality media"
+        },
+        {
+            "role": "thumbnails",
+            "store": "tams",
+            "kind": "flow",
+            "timeline": "image",
+            "meaning": "Thumbnails (recorder `flow_collection` role)"
+        },
+        {
+            "role": "thumbnail-index",
+            "store": "tams",
+            "kind": "flow",
+            "meaning": "Thumbnail index (recorder `flow_collection` role)"
+        },
+        {
+            "role": "keyframes",
+            "store": "tams",
+            "kind": "flow",
+            "timeline": "image",
+            "meaning": "Per-second keyframes (keyframe generator)"
+        },
+        {
+            "role": "keyframe-index",
+            "store": "tams",
+            "kind": "flow",
+            "meaning": "Keyframe frame index (keyframe generator)"
+        },
+        {
+            "role": "subtitles.cue",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "text",
+            "key": "lang",
+            "meaning": "Subtitle cues, overlapping"
+        },
+        {
+            "role": "subtitles.gap",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "interval",
+            "key": "lang",
+            "meaning": "Missing-subtitle spans"
+        },
+        {
+            "role": "audio.loudness",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "scalar",
+            "key": "programme",
+            "meaning": "EBU R128 / BS.1770 samples, with tiers"
+        },
+        {
+            "role": "audio.loudness.breach",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "interval",
+            "key": "programme",
+            "meaning": "Over/under target spans"
+        },
+        {
+            "role": "audio.silence",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "interval",
+            "key": "programme",
+            "meaning": "Silence spans"
+        },
+        {
+            "role": "audio.format",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "state",
+            "key": "programme",
+            "meaning": "Channel layout / codec changes"
+        },
+        {
+            "role": "video.black",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "interval",
+            "meaning": "Black spans"
+        },
+        {
+            "role": "video.freeze",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "interval",
+            "meaning": "Freeze spans"
+        },
+        {
+            "role": "video.format",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "state",
+            "meaning": "Resolution / rate / aspect changes"
+        },
+        {
+            "role": "video.shotchange",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "instant",
+            "meaning": "Shot boundaries"
+        },
+        {
+            "role": "signal.loss",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "interval",
+            "meaning": "Input/video/audio loss"
+        },
+        {
+            "role": "signal.scte35",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "instant",
+            "meaning": "SCTE-35 cues"
+        },
+        {
+            "role": "schedule",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "interval",
+            "meaning": "Planned schedule (EPG)"
+        },
+        {
+            "role": "asrun",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "interval",
+            "meaning": "What actually aired; navigation backbone"
+        },
+        {
+            "role": "transcript.asr",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "text",
+            "key": "lang",
+            "meaning": "Speech-to-text"
+        },
+        {
+            "role": "operator.annotation",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "text",
+            "meaning": "Human notes (`editable_events: true`)"
+        },
+        {
+            "role": "operator.marks",
+            "store": "tads",
+            "kind": "track",
+            "timeline": "interval",
+            "meaning": "Export marks / evidence ranges (replaces localStorage clips)"
+        }
+    ]
+}

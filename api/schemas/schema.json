@@ -1,0 +1,43 @@
+{
+    "allOf": [
+        {
+            "$ref": "schema-fields.json"
+        },
+        {
+            "type": "object",
+            "required": [
+                "id",
+                "family",
+                "version",
+                "created",
+                "created_by"
+            ],
+            "properties": {
+                "id": {
+                    "$ref": "uuid.json"
+                },
+                "family": {
+                    "$ref": "family.json"
+                },
+                "version": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "created": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "updated": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by": {
+                    "type": "string"
+                }
+            }
+        }
+    ]
+}

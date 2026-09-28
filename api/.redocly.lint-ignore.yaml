@@ -1,0 +1,32 @@
+# Known Redocly warnings that are not defects. Each group is explained; a NEW warning is
+# not in this file and so is reported, which is the point of keeping it.
+#
+# no-required-schema-properties-undefined: `if/then` conditionals ("a rule collection
+#   requires `rule`", "cardinality many requires `key`", "tiers require `tierLink`") name
+#   properties the enclosing schema defines; Redocly looks only inside the `then`.
+# operation-operationId: the webhook event types share one path item, which cannot carry a
+#   unique operationId. TADS has the same shape.
+# operation-4xx-response: /service and /service/meta/definition are unauthenticated and
+#   cannot fail with a 4xx.
+# no-server-example.com: the localhost development server entry.
+TypedEntityDataStore.yaml:
+  no-server-example.com:
+    - '#/servers/0/url'
+  operation-4xx-response:
+    - '#/paths/~1service/get/responses'
+    - '#/paths/~1service/head/responses'
+    - '#/paths/~1service~1meta~1definition/get/responses'
+  operation-operationId:
+    - '#/components/pathItems/webhook_delivery/post/operationId'
+schemas/definition.json:
+  no-required-schema-properties-undefined:
+    - '#/$defs/roleDeclaration/allOf/0/then/required/0'
+    - '#/$defs/roleDeclaration/allOf/0/else/not/required/0'
+    - '#/$defs/roleDeclaration/allOf/1/then/not/anyOf/0/required/0'
+    - '#/$defs/roleDeclaration/allOf/1/then/not/anyOf/1/required/0'
+    - '#/$defs/roleDeclaration/allOf/2/if/required/0'
+    - '#/$defs/roleDeclaration/allOf/2/then/required/0'
+schemas/collection-fields.json:
+  no-required-schema-properties-undefined:
+    - '#/allOf/0/then/required/0'
+    - '#/allOf/0/else/not/required/0'

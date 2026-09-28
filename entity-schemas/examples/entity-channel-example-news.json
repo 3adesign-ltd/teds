@@ -1,0 +1,76 @@
+{
+    "id": "6f1d3c2a-8b4e-4f7a-9c1d-2e3f4a5b6c7d",
+    "schema_id": "0e7cd69b-776e-5ca8-9e2a-40c55b53681a",
+    "org": "3f1c9e52-8a7b-4c2d-9e60-1b2a3c4d5e6f",
+    "label": "Example News HD",
+    "tags": {},
+    "metadata": {
+        "name": "Example News HD",
+        "shortName": "Ex News",
+        "channelNumber": 101,
+        "provider": "Example Broadcaster",
+        "territory": "GB",
+        "timezone": "Europe/London",
+        "dvb": {
+            "onid": 9999,
+            "tsid": 1,
+            "sid": 101
+        },
+        "languages": [
+            "en",
+            "cy"
+        ],
+        "audioProgrammes": [
+            "main",
+            "ad"
+        ],
+        "loudness": {
+            "standard": "EBU R128",
+            "targetLufs": -23,
+            "toleranceLu": 1,
+            "maxTruePeakDbtp": -1
+        },
+        "retentionDays": 90,
+        "regime": "Ofcom TV"
+    },
+    "_links_example": [
+        {
+            "role": "av",
+            "key": {},
+            "store": "tams",
+            "target": {
+                "kind": "flow",
+                "id": "3e9a1b7c-4d2f-4a8e-b6c1-9f0e2d3c4b5a"
+            },
+            "valid": "[1790170793:713984512_",
+            "origin": "declared"
+        },
+        {
+            "role": "subtitles.cue",
+            "key": {
+                "lang": "cy"
+            },
+            "store": "tads",
+            "target": {
+                "kind": "track",
+                "id": "7d0f6f5e-1c1a-4f7e-9b1a-2a9f0c3e4d51"
+            },
+            "valid": "[1790170793:0_",
+            "origin": "stamped"
+        },
+        {
+            "role": "audio.loudness",
+            "key": {
+                "programme": "main"
+            },
+            "tier": 60,
+            "store": "tads",
+            "target": {
+                "kind": "track",
+                "id": "5a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d"
+            },
+            "valid": "[1790170793:0_",
+            "origin": "stamped"
+        }
+    ]
+}

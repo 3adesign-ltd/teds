@@ -1,0 +1,22 @@
+{
+    "allOf": [
+        {
+            "$ref": "webhook-fields.json"
+        },
+        {
+            "type": "object",
+            "required": [
+                "id",
+                "created_by"
+            ],
+            "properties": {
+                "id": {
+                    "$ref": "uuid.json"
+                },
+                "created_by": {
+                    "type": "string"
+                }
+            }
+        }
+    ]
+}

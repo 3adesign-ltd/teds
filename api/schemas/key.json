@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "description": "The link's key, e.g. `{\"lang\": \"cy\"}`. `{}` for a role without a key.",
+    "additionalProperties": {
+        "type": "string"
+    },
+    "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+    }
+}

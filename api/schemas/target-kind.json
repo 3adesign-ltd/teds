@@ -1,0 +1,8 @@
+{
+    "type": "string",
+    "enum": [
+        "flow",
+        "source",
+        "track"
+    ]
+}
