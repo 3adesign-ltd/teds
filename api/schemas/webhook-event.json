@@ -1,0 +1,21 @@
+{
+    "type": "object",
+    "required": [
+        "event_timestamp",
+        "event_type",
+        "event"
+    ],
+    "properties": {
+        "event_timestamp": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "event_type": {
+            "type": "string"
+        },
+        "event": {
+            "type": "object",
+            "description": "`{schema}`, `{entity}`, `{link}` or `{collection}` — the resource after the change;\nfor `*/deleted`, `{id}` only.\n"
+        }
+    }
+}

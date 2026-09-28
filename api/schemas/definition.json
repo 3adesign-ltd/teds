@@ -1,0 +1,504 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:teds:meta:definition:1",
+    "title": "TEDS schema definition",
+    "description": "The immutable `definition` of a TEDS schema: an entity schema, which validates /entities. Per-user data (an app's settings, favourites) is an ordinary entity schema too (contract P0-18). Rules this document cannot express are listed in contract.md §5 and checked by the server.",
+    "type": "object",
+    "required": [
+        "$teds"
+    ],
+    "properties": {
+        "$teds": {
+            "const": "entity-schema/1"
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "$teds": {
+                        "const": "entity-schema/1"
+                    }
+                }
+            },
+            "then": {
+                "$ref": "#/$defs/entityDefinition"
+            }
+        }
+    ],
+    "$defs": {
+        "family": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*(\\.[a-z0-9-]+)+$"
+        },
+        "role": {
+            "type": "string",
+            "pattern": "^(x-)?[a-z][a-z0-9-]*(\\.[a-z0-9-]+)*$"
+        },
+        "keyName": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "template": {
+            "description": "A string that may contain {entity.id}, {member.<role>}, {member.self}, {metadata.<path>} or {tier.bucketSec}.",
+            "type": "string"
+        },
+        "jsonSchemaObject": {
+            "description": "A Draft 2020-12 JSON Schema describing an object. The server also checks it against the 2020-12 meta-schema.",
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "type": {
+                    "const": "object"
+                }
+            }
+        },
+        "entityDefinition": {
+            "type": "object",
+            "required": [
+                "$teds",
+                "family",
+                "version",
+                "label",
+                "metadata",
+                "roles"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "$teds": {
+                    "const": "entity-schema/1"
+                },
+                "family": {
+                    "$ref": "#/$defs/family"
+                },
+                "version": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                },
+                "description": {
+                    "type": "string"
+                },
+                "display": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "title": {
+                            "$ref": "#/$defs/template"
+                        },
+                        "subtitle": {
+                            "$ref": "#/$defs/template"
+                        },
+                        "icon": {
+                            "$ref": "#/$defs/template"
+                        }
+                    }
+                },
+                "metadata": {
+                    "$ref": "#/$defs/jsonSchemaObject"
+                },
+                "facets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true
+                },
+                "search": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true
+                },
+                "purposes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]*$"
+                    },
+                    "uniqueItems": true
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/roleDeclaration"
+                    },
+                    "description": "The links this entity type has. Empty for plain data such as an app's settings."
+                }
+            }
+        },
+        "roleDeclaration": {
+            "type": "object",
+            "required": [
+                "role",
+                "store",
+                "kind"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "role": {
+                    "$ref": "#/$defs/role"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "store": {
+                    "enum": [
+                        "tams",
+                        "tads"
+                    ]
+                },
+                "kind": {
+                    "enum": [
+                        "flow",
+                        "source",
+                        "track"
+                    ]
+                },
+                "required": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "cardinality": {
+                    "enum": [
+                        "one",
+                        "many"
+                    ],
+                    "default": "one"
+                },
+                "timeBounded": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "timeline": {
+                    "enum": [
+                        "scalar",
+                        "state",
+                        "interval",
+                        "instant",
+                        "text",
+                        "image"
+                    ]
+                },
+                "navigation": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Offer this role as a jump-by-structure lane (e.g. asrun)."
+                },
+                "key": {
+                    "type": "object",
+                    "required": [
+                        "name",
+                        "from"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "name": {
+                            "$ref": "#/$defs/keyName"
+                        },
+                        "from": {
+                            "type": "string",
+                            "pattern": "^tag:teds\\.key\\.[a-z][a-z0-9_]*$"
+                        },
+                        "expected": {
+                            "description": "The key values an entity should have: a {metadata.<path>} template naming an array, or a literal list.",
+                            "oneOf": [
+                                {
+                                    "$ref": "#/$defs/template"
+                                },
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "uniqueItems": true
+                                }
+                            ]
+                        }
+                    }
+                },
+                "scale": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "unit": {
+                            "type": "string"
+                        },
+                        "min": {
+                            "type": "number"
+                        },
+                        "max": {
+                            "type": "number"
+                        },
+                        "reference": {
+                            "oneOf": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "$ref": "#/$defs/template"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "match": {
+                    "$ref": "#/$defs/match"
+                },
+                "tiers": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "bucketSec"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "bucketSec": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "schemaFamily": {
+                                "$ref": "#/$defs/family"
+                            }
+                        }
+                    }
+                },
+                "tierLink": {
+                    "$ref": "#/$defs/tagsRule"
+                },
+                "link": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/$defs/linkRule"
+                    }
+                },
+                "purposes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "cardinality": {
+                                "const": "many"
+                            }
+                        },
+                        "required": [
+                            "cardinality"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "key"
+                        ]
+                    },
+                    "else": {
+                        "not": {
+                            "required": [
+                                "key"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "store": {
+                                "const": "tams"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "kind": {
+                                "enum": [
+                                    "flow",
+                                    "source"
+                                ]
+                            }
+                        },
+                        "not": {
+                            "anyOf": [
+                                {
+                                    "required": [
+                                        "tiers"
+                                    ]
+                                },
+                                {
+                                    "required": [
+                                        "tierLink"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "else": {
+                        "properties": {
+                            "kind": {
+                                "const": "track"
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "required": [
+                            "tiers"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "tierLink"
+                        ]
+                    }
+                }
+            ]
+        },
+        "match": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "format": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^urn:x-nmos:format:"
+                    },
+                    "uniqueItems": true
+                },
+                "codec": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true
+                },
+                "schemaFamily": {
+                    "$ref": "#/$defs/family",
+                    "description": "TADS: the track's Payload Schema carries tag teds.family = this."
+                },
+                "schemaVersions": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "uniqueItems": true
+                },
+                "allowOverlaps": {
+                    "type": "boolean",
+                    "description": "TADS: the track's allow_overlaps must equal this."
+                }
+            }
+        },
+        "tagsRule": {
+            "type": "object",
+            "required": [
+                "tags"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "tags": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": {
+                        "$ref": "#/$defs/template"
+                    }
+                }
+            }
+        },
+        "linkRule": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "required": [
+                        "declared"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "declared": {
+                            "const": true
+                        }
+                    }
+                },
+                {
+                    "$ref": "#/$defs/tagsRule"
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "collectionOf",
+                        "collectionRole"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "collectionOf": {
+                            "$ref": "#/$defs/role"
+                        },
+                        "collectionRole": {
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "tags": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/$defs/template"
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "derivedFrom"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "derivedFrom": {
+                            "$ref": "#/$defs/role"
+                        },
+                        "tags": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/$defs/template"
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "timelineReferenceOf"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "timelineReferenceOf": {
+                            "$ref": "#/$defs/role"
+                        },
+                        "tags": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/$defs/template"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

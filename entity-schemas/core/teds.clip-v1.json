@@ -1,0 +1,163 @@
+{
+    "id": "2f2fc5c3-e8ff-573f-a960-62ad7b63293b",
+    "label": "Clip",
+    "description": "A bounded range of another entity's media: evidence, a news item, an edit source. A clip links to the SAME TAMS flows as its source, over a bounded validity range, so no media is copied. An exported rendition, if made, is its own role.",
+    "tags": {},
+    "definition": {
+        "$teds": "entity-schema/1",
+        "family": "teds.clip",
+        "version": 1,
+        "label": "Clip",
+        "description": "id = v5(NS, \"schema:teds.clip:1\")",
+        "display": {
+            "title": "{metadata.title}",
+            "subtitle": "{metadata.reference}"
+        },
+        "metadata": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "title",
+                "source"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                },
+                "description": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string",
+                    "title": "Case / complaint reference"
+                },
+                "reason": {
+                    "type": "string",
+                    "enum": [
+                        "complaint",
+                        "regulator",
+                        "internal-review",
+                        "editorial",
+                        "other"
+                    ]
+                },
+                "source": {
+                    "type": "object",
+                    "title": "Where it was cut from",
+                    "additionalProperties": false,
+                    "required": [
+                        "entity",
+                        "timerange"
+                    ],
+                    "properties": {
+                        "entity": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "timerange": {
+                            "type": "string",
+                            "pattern": "^(\\[|\\()?(-?(0|[1-9][0-9]*):(0|[1-9][0-9]{0,8}))?(_(-?(0|[1-9][0-9]*):(0|[1-9][0-9]{0,8}))?)?(\\]|\\))?$"
+                        }
+                    }
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true
+                }
+            }
+        },
+        "facets": [
+            "reason",
+            "keywords"
+        ],
+        "search": [
+            "title",
+            "description",
+            "reference"
+        ],
+        "purposes": [
+            "compliance",
+            "nle"
+        ],
+        "roles": [
+            {
+                "role": "av",
+                "label": "Picture and sound (the source's flow, bounded)",
+                "store": "tams",
+                "kind": "flow",
+                "required": true,
+                "cardinality": "one",
+                "timeBounded": true,
+                "timeline": "image",
+                "link": [
+                    {
+                        "declared": true
+                    }
+                ]
+            },
+            {
+                "role": "thumbnails",
+                "label": "Thumbnails (the source's, bounded)",
+                "store": "tams",
+                "kind": "flow",
+                "cardinality": "one",
+                "timeBounded": true,
+                "timeline": "image",
+                "match": {
+                    "codec": [
+                        "image/jpeg"
+                    ]
+                },
+                "link": [
+                    {
+                        "collectionOf": "av",
+                        "collectionRole": "thumbnails"
+                    }
+                ]
+            },
+            {
+                "role": "mezzanine",
+                "label": "Exported rendition",
+                "store": "tams",
+                "kind": "flow",
+                "cardinality": "one",
+                "timeBounded": false,
+                "timeline": "image",
+                "link": [
+                    {
+                        "tags": {
+                            "teds.entity": "{entity.id}",
+                            "teds.role": "mezzanine"
+                        }
+                    }
+                ]
+            },
+            {
+                "role": "operator.annotation",
+                "label": "Notes",
+                "store": "tads",
+                "kind": "track",
+                "cardinality": "one",
+                "timeBounded": false,
+                "timeline": "text",
+                "match": {
+                    "schemaFamily": "media.operator.annotation"
+                },
+                "link": [
+                    {
+                        "tags": {
+                            "teds.entity": "{entity.id}",
+                            "teds.role": "operator.annotation"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

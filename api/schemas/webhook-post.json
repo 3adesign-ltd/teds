@@ -1,0 +1,9 @@
+{
+    "description": "The request body — the webhook fields and nothing else.",
+    "allOf": [
+        {
+            "$ref": "webhook-fields.json"
+        }
+    ],
+    "unevaluatedProperties": false
+}

@@ -1,0 +1,10 @@
+{
+    "error": "validation_failed",
+    "message": "metadata does not validate against schema teds.channel.logging v1",
+    "details": [
+        {
+            "path": "/territory",
+            "message": "'gb' does not match '^[A-Z]{2}$'"
+        }
+    ]
+}

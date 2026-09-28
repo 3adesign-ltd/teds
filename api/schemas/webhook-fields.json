@@ -1,0 +1,54 @@
+{
+    "type": "object",
+    "required": [
+        "url",
+        "events"
+    ],
+    "properties": {
+        "url": {
+            "type": "string",
+            "format": "uri"
+        },
+        "api_key_name": {
+            "type": "string"
+        },
+        "api_key_value": {
+            "type": "string",
+            "writeOnly": true
+        },
+        "events": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "schemas/created",
+                    "schemas/updated",
+                    "schemas/deleted",
+                    "entities/created",
+                    "entities/updated",
+                    "entities/deleted",
+                    "links/created",
+                    "links/updated",
+                    "links/deleted",
+                    "collections/created",
+                    "collections/updated",
+                    "collections/deleted"
+                ]
+            }
+        },
+        "entity_types": {
+            "type": "array",
+            "description": "Limit entity and link events to these families.",
+            "items": {
+                "$ref": "family.json"
+            }
+        },
+        "entity_ids": {
+            "type": "array",
+            "items": {
+                "$ref": "uuid.json"
+            }
+        }
+    }
+}

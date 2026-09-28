@@ -1,0 +1,66 @@
+{
+    "type": "object",
+    "required": [
+        "label",
+        "kind"
+    ],
+    "properties": {
+        "label": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "static",
+                "rule"
+            ]
+        },
+        "rule": {
+            "$ref": "collection-rule.json"
+        },
+        "parent_id": {
+            "oneOf": [
+                {
+                    "$ref": "uuid.json"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "pinned": {
+            "type": "boolean",
+            "default": false,
+            "description": "Offer as a shared list in the finder (e.g. \"News desk channels\")."
+        },
+        "tags": {
+            "$ref": "tags.json"
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "kind": {
+                        "const": "rule"
+                    }
+                }
+            },
+            "then": {
+                "required": [
+                    "rule"
+                ]
+            },
+            "else": {
+                "not": {
+                    "required": [
+                        "rule"
+                    ]
+                }
+            }
+        }
+    ]
+}

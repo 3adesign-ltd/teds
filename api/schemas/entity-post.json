@@ -1,0 +1,9 @@
+{
+    "description": "The request body — the entity fields and nothing else.",
+    "allOf": [
+        {
+            "$ref": "entity-fields.json"
+        }
+    ],
+    "unevaluatedProperties": false
+}

@@ -1,0 +1,617 @@
+{
+    "id": "0e7cd69b-776e-5ca8-9e2a-40c55b53681a",
+    "label": "Logging / compliance channel",
+    "description": "A continuously recorded broadcast channel: picture and sound in TAMS; subtitles, loudness, programme timeline and signal events in TADS.",
+    "tags": {},
+    "definition": {
+        "$teds": "entity-schema/1",
+        "family": "teds.channel.logging",
+        "version": 1,
+        "label": "Logging / compliance channel",
+        "description": "id = v5(NS, \"schema:teds.channel.logging:1\"), NS = cd261b94-a66a-473f-b491-da5ec582a34b",
+        "display": {
+            "title": "{metadata.name}",
+            "subtitle": "{metadata.provider} · {metadata.territory}",
+            "icon": "{metadata.logo}"
+        },
+        "metadata": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "name",
+                "provider",
+                "territory",
+                "timezone",
+                "retentionDays"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "title": "Channel name"
+                },
+                "shortName": {
+                    "type": "string",
+                    "maxLength": 16,
+                    "title": "Short name"
+                },
+                "channelNumber": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "title": "LCN"
+                },
+                "provider": {
+                    "type": "string",
+                    "minLength": 1,
+                    "title": "Provider"
+                },
+                "territory": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{2}$",
+                    "title": "Territory (ISO 3166-1 alpha-2)"
+                },
+                "timezone": {
+                    "type": "string",
+                    "minLength": 1,
+                    "title": "Local timezone (IANA)",
+                    "examples": [
+                        "Europe/London"
+                    ]
+                },
+                "logo": {
+                    "type": "string",
+                    "format": "uri",
+                    "title": "Logo URL"
+                },
+                "dvb": {
+                    "type": "object",
+                    "title": "DVB service",
+                    "additionalProperties": false,
+                    "required": [
+                        "onid",
+                        "tsid",
+                        "sid"
+                    ],
+                    "properties": {
+                        "onid": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 65535
+                        },
+                        "tsid": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 65535
+                        },
+                        "sid": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 65535
+                        }
+                    }
+                },
+                "languages": {
+                    "type": "array",
+                    "title": "Expected subtitle languages (BCP 47)",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+                    },
+                    "uniqueItems": true,
+                    "default": []
+                },
+                "audioProgrammes": {
+                    "type": "array",
+                    "title": "Expected audio programmes",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "main",
+                            "ad",
+                            "surround",
+                            "clean"
+                        ]
+                    },
+                    "uniqueItems": true,
+                    "default": [
+                        "main"
+                    ]
+                },
+                "loudness": {
+                    "type": "object",
+                    "title": "Loudness regime",
+                    "additionalProperties": false,
+                    "properties": {
+                        "standard": {
+                            "type": "string",
+                            "enum": [
+                                "EBU R128",
+                                "ATSC A/85",
+                                "ARIB TR-B32"
+                            ]
+                        },
+                        "targetLufs": {
+                            "type": "number",
+                            "default": -23
+                        },
+                        "toleranceLu": {
+                            "type": "number",
+                            "minimum": 0,
+                            "default": 1
+                        },
+                        "maxTruePeakDbtp": {
+                            "type": "number",
+                            "default": -1
+                        }
+                    }
+                },
+                "retentionDays": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 3650,
+                    "title": "Retention (days)",
+                    "default": 90
+                },
+                "regime": {
+                    "type": "string",
+                    "title": "Compliance regime",
+                    "examples": [
+                        "Ofcom TV"
+                    ]
+                }
+            }
+        },
+        "facets": [
+            "provider",
+            "territory",
+            "languages",
+            "regime",
+            "audioProgrammes"
+        ],
+        "search": [
+            "name",
+            "shortName",
+            "provider"
+        ],
+        "purposes": [
+            "compliance",
+            "nle",
+            "monitoring"
+        ],
+        "roles": [
+            {
+                "role": "av",
+                "label": "Programme picture and sound",
+                "store": "tams",
+                "kind": "flow",
+                "required": true,
+                "cardinality": "one",
+                "timeBounded": true,
+                "timeline": "image",
+                "match": {
+                    "format": [
+                        "urn:x-nmos:format:multi",
+                        "urn:x-nmos:format:video"
+                    ],
+                    "codec": [
+                        "video/MP2T",
+                        "video/h264"
+                    ]
+                },
+                "link": [
+                    {
+                        "declared": true
+                    },
+                    {
+                        "tags": {
+                            "teds.entity": "{entity.id}",
+                            "teds.role": "av"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance",
+                    "nle",
+                    "monitoring"
+                ]
+            },
+            {
+                "role": "proxy",
+                "label": "Browse proxy",
+                "store": "tams",
+                "kind": "flow",
+                "cardinality": "one",
+                "timeBounded": true,
+                "timeline": "image",
+                "match": {
+                    "format": [
+                        "urn:x-nmos:format:video"
+                    ],
+                    "codec": [
+                        "video/h264"
+                    ]
+                },
+                "link": [
+                    {
+                        "derivedFrom": "av",
+                        "tags": {
+                            "teds.role": "proxy"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance",
+                    "nle"
+                ]
+            },
+            {
+                "role": "thumbnails",
+                "label": "Thumbnails",
+                "store": "tams",
+                "kind": "flow",
+                "required": true,
+                "cardinality": "one",
+                "timeBounded": true,
+                "timeline": "image",
+                "match": {
+                    "format": [
+                        "urn:x-nmos:format:video"
+                    ],
+                    "codec": [
+                        "image/jpeg"
+                    ]
+                },
+                "link": [
+                    {
+                        "collectionOf": "av",
+                        "collectionRole": "thumbnails"
+                    },
+                    {
+                        "derivedFrom": "av",
+                        "tags": {
+                            "teds.role": "thumbnails"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance",
+                    "nle"
+                ]
+            },
+            {
+                "role": "thumbnail-index",
+                "label": "Thumbnail index",
+                "store": "tams",
+                "kind": "flow",
+                "cardinality": "one",
+                "timeBounded": true,
+                "match": {
+                    "format": [
+                        "urn:x-nmos:format:data"
+                    ]
+                },
+                "link": [
+                    {
+                        "collectionOf": "av",
+                        "collectionRole": "thumbnail-index"
+                    }
+                ]
+            },
+            {
+                "role": "keyframes",
+                "label": "Per-second keyframes",
+                "store": "tams",
+                "kind": "flow",
+                "cardinality": "one",
+                "timeBounded": true,
+                "timeline": "image",
+                "match": {
+                    "codec": [
+                        "image/jpeg"
+                    ]
+                },
+                "link": [
+                    {
+                        "derivedFrom": "av",
+                        "tags": {
+                            "teds.role": "keyframes"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance",
+                    "nle"
+                ]
+            },
+            {
+                "role": "keyframe-index",
+                "label": "Keyframe index",
+                "store": "tams",
+                "kind": "flow",
+                "cardinality": "one",
+                "timeBounded": true,
+                "match": {
+                    "format": [
+                        "urn:x-nmos:format:data"
+                    ]
+                },
+                "link": [
+                    {
+                        "derivedFrom": "av",
+                        "tags": {
+                            "teds.role": "keyframe-index"
+                        }
+                    }
+                ]
+            },
+            {
+                "role": "subtitles.cue",
+                "label": "Subtitles",
+                "store": "tads",
+                "kind": "track",
+                "required": true,
+                "cardinality": "many",
+                "timeBounded": true,
+                "key": {
+                    "name": "lang",
+                    "from": "tag:teds.key.lang",
+                    "expected": "{metadata.languages}"
+                },
+                "timeline": "text",
+                "match": {
+                    "schemaFamily": "media.subtitles.cue",
+                    "allowOverlaps": true
+                },
+                "link": [
+                    {
+                        "timelineReferenceOf": "av",
+                        "tags": {
+                            "teds.role": "subtitles.cue"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance"
+                ]
+            },
+            {
+                "role": "subtitles.gap",
+                "label": "Subtitle gaps",
+                "store": "tads",
+                "kind": "track",
+                "cardinality": "many",
+                "timeBounded": true,
+                "key": {
+                    "name": "lang",
+                    "from": "tag:teds.key.lang"
+                },
+                "timeline": "interval",
+                "match": {
+                    "schemaFamily": "media.subtitles.gap"
+                },
+                "link": [
+                    {
+                        "timelineReferenceOf": "av",
+                        "tags": {
+                            "teds.role": "subtitles.gap"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance"
+                ]
+            },
+            {
+                "role": "audio.loudness",
+                "label": "Loudness",
+                "store": "tads",
+                "kind": "track",
+                "required": true,
+                "cardinality": "many",
+                "timeBounded": true,
+                "key": {
+                    "name": "programme",
+                    "from": "tag:teds.key.programme",
+                    "expected": "{metadata.audioProgrammes}"
+                },
+                "timeline": "scalar",
+                "scale": {
+                    "unit": "LUFS",
+                    "min": -60,
+                    "max": 0,
+                    "reference": "{metadata.loudness.targetLufs}"
+                },
+                "match": {
+                    "schemaFamily": "media.audio.loudness"
+                },
+                "tiers": [
+                    {
+                        "bucketSec": 60,
+                        "schemaFamily": "media.audio.loudness.rollup"
+                    },
+                    {
+                        "bucketSec": 3600,
+                        "schemaFamily": "media.audio.loudness.rollup"
+                    },
+                    {
+                        "bucketSec": 86400,
+                        "schemaFamily": "media.audio.loudness.rollup"
+                    }
+                ],
+                "tierLink": {
+                    "tags": {
+                        "teds.rollup_of": "{member.self}",
+                        "teds.tier": "{tier.bucketSec}"
+                    }
+                },
+                "link": [
+                    {
+                        "timelineReferenceOf": "av",
+                        "tags": {
+                            "teds.role": "audio.loudness"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance",
+                    "monitoring"
+                ]
+            },
+            {
+                "role": "audio.loudness.breach",
+                "label": "Loudness breaches",
+                "store": "tads",
+                "kind": "track",
+                "cardinality": "many",
+                "timeBounded": true,
+                "key": {
+                    "name": "programme",
+                    "from": "tag:teds.key.programme"
+                },
+                "timeline": "interval",
+                "match": {
+                    "schemaFamily": "media.audio.loudness.breach"
+                },
+                "link": [
+                    {
+                        "timelineReferenceOf": "av",
+                        "tags": {
+                            "teds.role": "audio.loudness.breach"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance"
+                ]
+            },
+            {
+                "role": "schedule",
+                "label": "Planned schedule (EPG)",
+                "store": "tads",
+                "kind": "track",
+                "cardinality": "one",
+                "timeBounded": false,
+                "timeline": "interval",
+                "match": {
+                    "schemaFamily": "media.programme.schedule"
+                },
+                "link": [
+                    {
+                        "tags": {
+                            "teds.entity": "{entity.id}",
+                            "teds.role": "schedule"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance",
+                    "nle"
+                ]
+            },
+            {
+                "role": "asrun",
+                "label": "Programme timeline (as-run)",
+                "store": "tads",
+                "kind": "track",
+                "required": true,
+                "cardinality": "one",
+                "timeBounded": true,
+                "timeline": "interval",
+                "navigation": true,
+                "match": {
+                    "schemaFamily": "media.programme.asrun"
+                },
+                "link": [
+                    {
+                        "timelineReferenceOf": "av",
+                        "tags": {
+                            "teds.role": "asrun"
+                        }
+                    },
+                    {
+                        "tags": {
+                            "teds.entity": "{entity.id}",
+                            "teds.role": "asrun"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance",
+                    "nle"
+                ]
+            },
+            {
+                "role": "signal.loss",
+                "label": "Signal loss",
+                "store": "tads",
+                "kind": "track",
+                "cardinality": "one",
+                "timeBounded": true,
+                "timeline": "interval",
+                "match": {
+                    "schemaFamily": "media.signal.loss"
+                },
+                "link": [
+                    {
+                        "timelineReferenceOf": "av",
+                        "tags": {
+                            "teds.role": "signal.loss"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance",
+                    "monitoring"
+                ]
+            },
+            {
+                "role": "operator.marks",
+                "label": "Export marks",
+                "store": "tads",
+                "kind": "track",
+                "cardinality": "one",
+                "timeBounded": false,
+                "timeline": "interval",
+                "match": {
+                    "schemaFamily": "media.operator.marks"
+                },
+                "link": [
+                    {
+                        "tags": {
+                            "teds.entity": "{entity.id}",
+                            "teds.role": "operator.marks"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance"
+                ]
+            },
+            {
+                "role": "operator.annotation",
+                "label": "Operator notes",
+                "store": "tads",
+                "kind": "track",
+                "cardinality": "one",
+                "timeBounded": false,
+                "timeline": "text",
+                "match": {
+                    "schemaFamily": "media.operator.annotation"
+                },
+                "link": [
+                    {
+                        "tags": {
+                            "teds.entity": "{entity.id}",
+                            "teds.role": "operator.annotation"
+                        }
+                    }
+                ],
+                "purposes": [
+                    "compliance"
+                ]
+            }
+        ]
+    }
+}

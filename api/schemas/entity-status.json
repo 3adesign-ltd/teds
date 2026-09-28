@@ -1,0 +1,65 @@
+{
+    "type": "object",
+    "required": [
+        "entity_id",
+        "at",
+        "complete",
+        "roles"
+    ],
+    "properties": {
+        "entity_id": {
+            "$ref": "uuid.json"
+        },
+        "at": {
+            "$ref": "timestamp.json"
+        },
+        "complete": {
+            "type": "boolean"
+        },
+        "roles": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "role",
+                    "required",
+                    "expected_keys",
+                    "present_keys",
+                    "missing_keys"
+                ],
+                "properties": {
+                    "role": {
+                        "$ref": "role.json"
+                    },
+                    "required": {
+                        "type": "boolean"
+                    },
+                    "expected_keys": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "key.json"
+                        }
+                    },
+                    "present_keys": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "key.json"
+                        }
+                    },
+                    "missing_keys": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "key.json"
+                        }
+                    }
+                }
+            }
+        },
+        "optional_absent": {
+            "type": "array",
+            "items": {
+                "$ref": "role.json"
+            }
+        }
+    }
+}

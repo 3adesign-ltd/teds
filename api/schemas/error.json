@@ -1,0 +1,30 @@
+{
+    "type": "object",
+    "required": [
+        "error",
+        "message"
+    ],
+    "properties": {
+        "error": {
+            "type": "string",
+            "description": "A stable machine-readable code (`validation_failed`, `not_found`, `immutable`, `overlap`, `target_mismatch`, …)."
+        },
+        "message": {
+            "type": "string"
+        },
+        "details": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

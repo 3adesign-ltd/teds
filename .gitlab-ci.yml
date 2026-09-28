@@ -1,0 +1,101 @@
+# TEDS specification pipeline — the GitLab equivalent of bbc/tads's GitHub workflows:
+#   ci-workflow           -> lint:markdown, lint:openapi, lint:spectral, render
+#   adr-check-workflow    -> validate (the `docs` check), and the whole-repo checks with it
+#   commit-check-workflow -> commits
+# (bbc/tads's release workflow, pbrversion from `sem-ver:` strings, is not here yet.)
+#
+# Every job can fail the pipeline, and the project requires a green pipeline to merge.
+# One pipeline per change: a merge request pipeline for an open MR (it is what "pipelines
+# must succeed" gates on), a branch pipeline otherwise — never both for the same push.
+# Without this, the first MR ran two pipelines and the MR's one held only `commits`.
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+# Jobs with no rules do not run in merge request pipelines at all, so every job carries these.
+.every_pipeline:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - lint
+  - render
+
+variables:
+  REDOCLY_VERSION: "2.55.0"
+
+lint:markdown:
+  extends: .every_pipeline
+  stage: lint
+  tags: [analysis]
+  image:
+    name: davidanson/markdownlint-cli2-rules:v0.12.1
+    entrypoint: [""]
+  script:
+    # The one-sentence-per-line custom rule resolves from the image's /workdir.
+    - cp -r . /workdir && cd /workdir && markdownlint-cli2
+
+lint:openapi:
+  extends: .every_pipeline
+  stage: lint
+  tags: [analysis]
+  image: node:22-slim
+  script:
+    # Valid, with the known non-defects listed (and explained) in api/.redocly.lint-ignore.yaml.
+    - cd api && npx --yes @redocly/cli@${REDOCLY_VERSION} lint TypedEntityDataStore.yaml --format=stylish
+
+lint:spectral:
+  extends: .every_pipeline
+  stage: lint
+  tags: [analysis]
+  image: node:22-slim
+  script:
+    # Spectral on the BUNDLE, as bbc/tads does: it cannot follow some split references.
+    - cd api && npx --yes @redocly/cli@${REDOCLY_VERSION} bundle TypedEntityDataStore.yaml -o docs/TypedEntityDataStore_bundled.yaml
+    - npx --yes @stoplight/spectral-cli@6.15.0 lint --fail-severity=warn docs/TypedEntityDataStore_bundled.yaml
+
+validate:
+  extends: .every_pipeline
+  stage: lint
+  tags: [analysis]
+  image: python:3.12-slim
+  script:
+    - pip install -q -r tools/requirements.txt
+    - python3 tools/validate.py
+
+commits:
+  stage: lint
+  tags: [analysis]
+  image:
+    name: alpine/git:2.47.2
+    # The image's entrypoint is `git`; the runner's shell must be the entrypoint instead.
+    entrypoint: [""]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    GIT_DEPTH: "0"
+  script:
+    # As bbc/tads's commit-check workflow: nothing that was meant to be squashed or reworded.
+    - git fetch -q origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - |
+      bad=$(git log --format='%h %s' "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME..HEAD" \
+        | grep -E ' (FIXUP|SQUASH|AMEND|REWORD|DONOTMERGE|WIP|TEMP|!fixup|!squash|!amend|!reword|fixup!|squash!|amend!|reword!)' || true)
+      if [ -n "$bad" ]; then echo "Commits to squash or reword before merging:"; echo "$bad"; exit 1; fi
+      echo "commit messages ok"
+
+render:
+  extends: .every_pipeline
+  stage: render
+  tags: [analysis]
+  image: node:22-slim
+  script:
+    - cd api && npx --yes @redocly/cli@${REDOCLY_VERSION} bundle TypedEntityDataStore.yaml -o docs/TypedEntityDataStore_bundled.yaml
+  artifacts:
+    name: teds-api-docs-${CI_COMMIT_SHORT_SHA}
+    paths:
+      - api/docs/
+    expire_in: 30 days

@@ -1,0 +1,19 @@
+{
+    "allOf": [
+        {
+            "$ref": "schema.json"
+        },
+        {
+            "type": "object",
+            "properties": {
+                "warnings": {
+                    "type": "array",
+                    "description": "Compatibility warnings against the family's previous version (contract.md §8).",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    ]
+}

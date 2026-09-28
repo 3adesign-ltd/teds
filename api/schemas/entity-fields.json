@@ -1,0 +1,26 @@
+{
+    "type": "object",
+    "required": [
+        "schema_id",
+        "metadata"
+    ],
+    "properties": {
+        "schema_id": {
+            "$ref": "uuid.json"
+        },
+        "label": {
+            "type": "string",
+            "description": "Defaults to the schema's `display.title` rendered from the metadata."
+        },
+        "description": {
+            "type": "string"
+        },
+        "tags": {
+            "$ref": "tags.json"
+        },
+        "metadata": {
+            "type": "object",
+            "description": "Validated against the schema's `metadata` JSON Schema."
+        }
+    }
+}

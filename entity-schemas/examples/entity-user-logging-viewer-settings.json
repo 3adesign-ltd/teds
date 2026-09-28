@@ -1,0 +1,14 @@
+{
+    "id": "071c9a15-d22a-5d17-96bb-7d89e1bef42e",
+    "schema_id": "29a9182e-c995-58cd-8345-d98c130c4099",
+    "label": "Logging viewer settings for one user",
+    "_user_sub": "b7d1c0de-0000-4000-8000-000000000001",
+    "metadata": {
+        "lanes": {
+            "thumbnails": false
+        },
+        "meters": {
+            "placement": "split"
+        }
+    }
+}

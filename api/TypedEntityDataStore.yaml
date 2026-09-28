@@ -1,0 +1,1560 @@
+openapi: 3.1.0
+info:
+  title: Typed Entity Data Store
+  version: '0.1'
+  summary: Schema-validated typed entities, their links to TAMS and TADS, and collections of them.
+  description: |
+    The Typed Entity Data Store (TEDS) stores **typed entities** — channels, clips, and
+    whatever else a schema defines — each validated against an uploaded, immutable
+    **Schema**. It links each entity to the TAMS flows/sources and TADS tracks that
+    serve it, by **role**, **key** and **validity timerange**; and groups entities into
+    **collections**. Everything it holds is schema-driven: per-user data such as an app's
+    settings or favourites is an ordinary entity of an app-supplied schema (contract P0-18).
+
+    TEDS stores no media (that is TAMS) and no timed data (that is TADS), and it
+    decides **no rights**: who may see or do what is the job of an access-control
+    service in front of it (contract.md P0-14). TEDS has no dependency on any
+    other service.
+
+    ## Conventions shared with TADS
+
+    * Listings are keyset-paged: `page` / `limit` in, `Link` + `X-Paging-NextKey` +
+      `X-Paging-Limit` + `X-Paging-Count` out. A client that ignores `X-Paging-NextKey`
+      silently truncates.
+    * `HEAD` is supported on listings and returns the same headers as `GET`.
+    * `tags` are free-form (string or array of strings) and filterable with
+      `tag.{name}` and `tag_exists.{name}`. **Tag names starting `teds.` are reserved**:
+      only the server writes them, and a client write is a 400.
+    * A Schema's `definition` is immutable (as a TADS Payload Schema's `schema` is).
+    * Authentication offers the same three schemes as TADS — Bearer token, URL token and
+      Basic — and a deployment chooses which provider checks them (contract.md P0-15).
+
+    ## Rights
+
+    None here. A calling service that restricts what a user may see narrows TEDS
+    listings with the `id` and `collection` filters, and applies its own rules to the
+    entities TEDS returns.
+
+    ## Time
+
+    Timestamps and timeranges use the TAMS formats (`<sec>:<nsec>`, `[a_b)`).
+
+    See `contract.md` for the tag contract, role vocabulary and link rules.
+  license:
+    name: Proprietary — 3adesign
+    identifier: LicenseRef-3adesign-Proprietary
+  contact:
+    name: 3adesign
+    url: https://gitlab.3adesign.co.uk/phrame/teds
+servers:
+  - url: http://localhost:4070
+    description: Local development instance
+security:
+  - bearer_token_auth: []
+  - url_token_auth: []
+  - basic_auth: []
+tags:
+  - name: Service
+    description: The service itself.
+  - name: Webhooks
+    description: Deliver notifications of changes to external systems.
+  - name: Schemas
+    description: |-
+      Uploaded, immutable definitions. Every entity is validated against one — including per-user data such as an app's settings, which is an ordinary entity type (contract P0-18).
+  - name: Entities
+    description: Typed entities and their metadata.
+  - name: Links
+    description: |
+      What serves an entity: TAMS flows/sources and TADS tracks, by role, key and time.
+  - name: Collections
+    description: 'Static or rule-based sets of entities, nestable. Plain data: a collection grants nothing.'
+paths:
+  /service:
+    head:
+      summary: Service information
+      operationId: HEAD_service
+      description: Return the `/service` headers, as `GET` does, without a body.
+      tags: [Service]
+      security:
+        - {}
+      responses:
+        '200':
+          description: ''
+    get:
+      summary: Service information
+      operationId: GET_service
+      description: Unauthenticated, so a client can discover the API version before it has a token.
+      tags: [Service]
+      security:
+        - {}
+      responses:
+        '200':
+          description: Service information.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/service.json
+              example:
+                $ref: examples/service-get-200.json
+  /service/meta/definition:
+    get:
+      summary: The meta-schema every Schema definition is validated against
+      operationId: GET_service_meta_definition
+      description: Returns `schemas/meta/definition.schema.json` (`$id` `urn:teds:meta:definition:1`), so a client can validate a definition before uploading it.
+      tags: [Service]
+      security:
+        - {}
+      responses:
+        '200':
+          description: A Draft 2020-12 JSON Schema.
+          content:
+            application/schema+json:
+              schema:
+                type: object
+
+  /service/webhooks:
+    head:
+      summary: List webhooks
+      operationId: HEAD_webhooks
+      description: Return the `/service/webhooks` paging headers, as `GET` does, without a body.
+      tags: [Webhooks]
+      parameters:
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/paged_headers_only'
+        '401':
+          $ref: '#/components/responses/401'
+    get:
+      summary: List webhooks
+      operationId: GET_webhooks
+      description: The caller's own webhooks.
+      tags: [Webhooks]
+      parameters:
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          description: Webhooks.
+          headers:
+            Link:
+              $ref: '#/components/headers/Link'
+            X-Paging-NextKey:
+              $ref: '#/components/headers/X-Paging-NextKey'
+            X-Paging-Limit:
+              $ref: '#/components/headers/X-Paging-Limit'
+            X-Paging-Count:
+              $ref: '#/components/headers/X-Paging-Count'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/webhook.json
+        '401':
+          $ref: '#/components/responses/401'
+    post:
+      summary: Register a webhook
+      operationId: POST_webhooks
+      description: |-
+        Events are delivered for every matching change; a subscriber that restricts access filters them itself.
+      tags: [Webhooks]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/webhook-post.json
+      responses:
+        '201':
+          description: Registered.
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: schemas/webhook.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '401':
+          $ref: '#/components/responses/401'
+
+  /service/webhooks/{webhook_id}:
+    parameters:
+      - $ref: '#/components/parameters/webhook_id'
+    get:
+      summary: Get a webhook
+      operationId: GET_webhook
+      description: Return one webhook registration.
+      tags: [Webhooks]
+      responses:
+        '200':
+          description: The webhook.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/webhook.json
+        '404':
+          $ref: '#/components/responses/404'
+    put:
+      summary: Replace a webhook
+      operationId: PUT_webhook
+      description: 'Replace a webhook registration: its URL, events and filters.'
+      tags: [Webhooks]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/webhook-post.json
+      responses:
+        '200':
+          description: Replaced.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/webhook.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '404':
+          $ref: '#/components/responses/404'
+    delete:
+      summary: Delete a webhook
+      operationId: DELETE_webhook
+      description: Delete a webhook registration. No further events are delivered to it.
+      tags: [Webhooks]
+      responses:
+        '204':
+          description: Deleted.
+        '404':
+          $ref: '#/components/responses/404'
+
+  /schemas:
+    head:
+      summary: List schemas
+      operationId: HEAD_schemas
+      description: Return the `/schemas` paging headers, as `GET` does, without a body.
+      tags: [Schemas]
+      parameters:
+        - $ref: '#/components/parameters/schema_family'
+        - $ref: '#/components/parameters/schema_version'
+        - $ref: '#/components/parameters/include_deprecated'
+        - $ref: '#/components/parameters/tag_filter'
+        - $ref: '#/components/parameters/tag_exists'
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/paged_headers_only'
+        '400':
+          $ref: '#/components/responses/400_query'
+    get:
+      summary: List schemas
+      operationId: GET_schemas
+      description: 'Every schema: the core ones shipped in the image, and those uploaded.'
+      tags: [Schemas]
+      parameters:
+        - $ref: '#/components/parameters/schema_family'
+        - $ref: '#/components/parameters/schema_version'
+        - $ref: '#/components/parameters/include_deprecated'
+        - $ref: '#/components/parameters/tag_filter'
+        - $ref: '#/components/parameters/tag_exists'
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          description: Schemas, newest version first within a family.
+          headers:
+            Link:
+              $ref: '#/components/headers/Link'
+            X-Paging-NextKey:
+              $ref: '#/components/headers/X-Paging-NextKey'
+            X-Paging-Limit:
+              $ref: '#/components/headers/X-Paging-Limit'
+            X-Paging-Count:
+              $ref: '#/components/headers/X-Paging-Count'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/schema.json
+        '400':
+          $ref: '#/components/responses/400_query'
+        '401':
+          $ref: '#/components/responses/401'
+    post:
+      summary: Upload a schema
+      operationId: POST_schemas
+      description: |
+        The server assigns the id. To register idempotently under a known id (core
+        schemas, producers), use `PUT /schemas/{schema_id}` instead.
+
+        The definition is validated against the meta-schema and the rules in
+        contract.md §5. `(org, family, version)` must be unique. Uploading version N+1
+        of a family returns compatibility `warnings` (contract.md §8) but is not refused.
+      tags: [Schemas]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/schema-post.json
+      responses:
+        '201':
+          description: Created.
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: schemas/schema-with-warnings.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '409':
+          $ref: '#/components/responses/409'
+
+  /schemas/{schema_id}:
+    parameters:
+      - $ref: '#/components/parameters/schema_id'
+    head:
+      summary: Get a schema
+      operationId: HEAD_schema
+      description: Return the headers of `GET /schemas/{schema_id}` without a body.
+      tags: [Schemas]
+      responses:
+        '200':
+          description: ''
+        '404':
+          $ref: '#/components/responses/404'
+    get:
+      summary: Get a schema
+      operationId: GET_schema
+      description: 'Return a schema: its label, description, tags and immutable definition.'
+      tags: [Schemas]
+      responses:
+        '200':
+          description: The schema.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/schema.json
+        '404':
+          $ref: '#/components/responses/404'
+    put:
+      summary: Register idempotently, or update mutable fields
+      operationId: PUT_schema
+      description: |
+        * **Absent** → created under this id (201).
+        * **Present, same `definition`** → `label`, `description`, `tags` and
+          `deprecated` are updated (200). Re-registering an unchanged core schema at
+          startup is therefore a no-op.
+        * **Present, different `definition`** → **403**. A definition is immutable; a
+          change is a new version under a new id.
+      tags: [Schemas]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/schema-post.json
+      responses:
+        '200':
+          description: Unchanged definition; mutable fields updated.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/schema.json
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/schema-with-warnings.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '403':
+          $ref: '#/components/responses/403'
+        '409':
+          $ref: '#/components/responses/409'
+    delete:
+      summary: Delete a schema
+      operationId: DELETE_schema
+      description: Refused with 409 while any entity uses it. Deprecate it instead.
+      tags: [Schemas]
+      responses:
+        '204':
+          description: Deleted.
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+
+  /schemas/{schema_id}/definition:
+    parameters:
+      - $ref: '#/components/parameters/schema_id'
+    get:
+      summary: Get a schema's definition
+      operationId: GET_schema_definition
+      description: The immutable definition only. There is deliberately no PUT.
+      tags: [Schemas]
+      responses:
+        '200':
+          description: The definition.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/definition.json
+        '404':
+          $ref: '#/components/responses/404'
+
+  /entities:
+    head:
+      summary: List entities
+      operationId: HEAD_entities
+      description: Return the `/entities` paging headers, as `GET` does with the same filters, without a body.
+      tags: [Entities]
+      parameters:
+        - $ref: '#/components/parameters/entity_type'
+        - $ref: '#/components/parameters/entity_schema_id'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/facet_filter'
+        - $ref: '#/components/parameters/in_collection'
+        - $ref: '#/components/parameters/entity_ids'
+        - $ref: '#/components/parameters/purpose'
+        - $ref: '#/components/parameters/entity_status'
+        - $ref: '#/components/parameters/tag_filter'
+        - $ref: '#/components/parameters/tag_exists'
+        - $ref: '#/components/parameters/entity_sort'
+        - $ref: '#/components/parameters/order'
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/paged_headers_only'
+        '400':
+          $ref: '#/components/responses/400_query'
+    get:
+      summary: List entities
+      operationId: GET_entities
+      description: |
+        `facet.{name}` filters are only valid with `type` or `schema_id`, since facets are
+        declared per schema; an undeclared facet is a 400. `id` and `collection` are how a
+        calling service that restricts access narrows a listing to what its user may see.
+      tags: [Entities]
+      parameters:
+        - $ref: '#/components/parameters/entity_type'
+        - $ref: '#/components/parameters/entity_schema_id'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/facet_filter'
+        - $ref: '#/components/parameters/in_collection'
+        - $ref: '#/components/parameters/entity_ids'
+        - $ref: '#/components/parameters/purpose'
+        - $ref: '#/components/parameters/entity_status'
+        - $ref: '#/components/parameters/tag_filter'
+        - $ref: '#/components/parameters/tag_exists'
+        - $ref: '#/components/parameters/entity_sort'
+        - $ref: '#/components/parameters/order'
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          description: Entities.
+          headers:
+            Link:
+              $ref: '#/components/headers/Link'
+            X-Paging-NextKey:
+              $ref: '#/components/headers/X-Paging-NextKey'
+            X-Paging-Limit:
+              $ref: '#/components/headers/X-Paging-Limit'
+            X-Paging-Count:
+              $ref: '#/components/headers/X-Paging-Count'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/entity.json
+        '400':
+          $ref: '#/components/responses/400_query'
+        '401':
+          $ref: '#/components/responses/401'
+    post:
+      summary: Create an entity
+      operationId: POST_entities
+      description: Create an entity under a server-assigned id. Its metadata must validate against its schema. To create at a known id, for example a per-user entity (AppNote 0004), use `PUT /entities/{entity_id}`.
+      tags: [Entities]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/entity-post.json
+      responses:
+        '201':
+          description: Created.
+          headers:
+            Location:
+              schema:
+                type: string
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: schemas/entity.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+
+  /entities/{entity_id}:
+    parameters:
+      - $ref: '#/components/parameters/entity_id'
+    head:
+      summary: Get an entity
+      operationId: HEAD_entity
+      description: Return the headers of `GET /entities/{entity_id}`, including its ETag, without a body.
+      tags: [Entities]
+      responses:
+        '200':
+          description: ''
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+        '404':
+          $ref: '#/components/responses/404'
+    get:
+      summary: Get an entity
+      operationId: GET_entity
+      description: 'Return an entity: its schema, metadata, tags and the collections it is in. Links are listed separately, under `/links`.'
+      tags: [Entities]
+      responses:
+        '200':
+          description: The entity.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: schemas/entity.json
+        '404':
+          $ref: '#/components/responses/404'
+    put:
+      summary: Create or replace an entity
+      operationId: PUT_entity
+      description: |
+        Idempotent create-or-replace under a caller-chosen id (Architect uses the id it
+        generated for the channel node). With `If-Match`, the replace only happens if the
+        entity is unchanged since that ETag (412 otherwise).
+      tags: [Entities]
+      parameters:
+        - $ref: '#/components/parameters/if_match'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/entity-post.json
+      responses:
+        '200':
+          description: Replaced.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: schemas/entity.json
+        '201':
+          description: Created.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: schemas/entity.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '412':
+          $ref: '#/components/responses/412'
+    patch:
+      summary: Update an entity
+      operationId: PATCH_entity
+      description: |
+        JSON Merge Patch (RFC 7396) over `label`, `description`, `tags` and `metadata`.
+        The patched metadata must still validate against the entity's schema.
+        `schema_id` and `org` cannot be patched (use `/migrate`).
+      tags: [Entities]
+      parameters:
+        - $ref: '#/components/parameters/if_match'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: schemas/entity-patch.json
+            example:
+              $ref: examples/entity-patch.json
+      responses:
+        '200':
+          description: Updated.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: schemas/entity.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '412':
+          $ref: '#/components/responses/412'
+    delete:
+      summary: Delete an entity
+      operationId: DELETE_entity
+      description: Removes the entity and its links. TAMS and TADS data are not touched.
+      tags: [Entities]
+      responses:
+        '204':
+          description: Deleted.
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+
+  /entities/{entity_id}/migrate:
+    parameters:
+      - $ref: '#/components/parameters/entity_id'
+    post:
+      summary: Move an entity to another schema
+      operationId: POST_entity_migrate
+      description: |
+        Revalidates the metadata (with an optional replacement) against the target schema, and
+        re-evaluates links against its roles. Links to roles the target does not declare are
+        closed, not deleted.
+      tags: [Entities]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [schema_id]
+              additionalProperties: false
+              properties:
+                schema_id:
+                  $ref: schemas/uuid.json
+                metadata:
+                  type: object
+                  description: Replacement metadata; omitted = keep the current metadata.
+      responses:
+        '200':
+          description: Migrated.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/entity-with-warnings.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+
+  /entities/{entity_id}/links:
+    parameters:
+      - $ref: '#/components/parameters/entity_id'
+    head:
+      summary: List an entity's links
+      operationId: HEAD_entity_links
+      description: Return the paging headers of the entity's link listing, as `GET` does with the same filters, without a body.
+      tags: [Links]
+      parameters:
+        - $ref: '#/components/parameters/role'
+        - $ref: '#/components/parameters/key_filter'
+        - $ref: '#/components/parameters/at'
+        - $ref: '#/components/parameters/include_closed'
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/paged_headers_only'
+        '404':
+          $ref: '#/components/responses/404'
+    get:
+      summary: List an entity's links
+      operationId: GET_entity_links
+      description: List the entity's links, optionally for one role, key or instant, and optionally including links whose validity has ended.
+      tags: [Links]
+      parameters:
+        - $ref: '#/components/parameters/role'
+        - $ref: '#/components/parameters/key_filter'
+        - $ref: '#/components/parameters/at'
+        - $ref: '#/components/parameters/include_closed'
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          description: Links, by role then validity start.
+          headers:
+            Link:
+              $ref: '#/components/headers/Link'
+            X-Paging-NextKey:
+              $ref: '#/components/headers/X-Paging-NextKey'
+            X-Paging-Limit:
+              $ref: '#/components/headers/X-Paging-Limit'
+            X-Paging-Count:
+              $ref: '#/components/headers/X-Paging-Count'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/link.json
+        '404':
+          $ref: '#/components/responses/404'
+    post:
+      summary: Add a link
+      operationId: POST_entity_links
+      description: |
+        Validated against the entity schema's role declaration (store, kind, `match`,
+        cardinality, key, tier). **The target is looked up in TAMS/TADS** and must exist
+        and satisfy `match` (422 otherwise, with the reason). Written with origin
+        `declared` when the caller owns the entity through Architect's service account,
+        `curated` otherwise. A link that would overlap another of the same
+        role/key/tier is a 409.
+      tags: [Links]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/link-post.json
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/link.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+
+  /entities/{entity_id}/links/{link_id}:
+    parameters:
+      - $ref: '#/components/parameters/entity_id'
+      - $ref: '#/components/parameters/link_id'
+    get:
+      summary: Get a link
+      operationId: GET_entity_link
+      description: 'Return one link: its role, key, tier, target, validity and origin.'
+      tags: [Links]
+      responses:
+        '200':
+          description: The link.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/link.json
+        '404':
+          $ref: '#/components/responses/404'
+    patch:
+      summary: Change a link's validity or evidence
+      operationId: PATCH_entity_link
+      description: |
+        Only `valid` and `evidence` may change. Closing an open link is setting the end
+        of `valid`. The same overlap rule applies (409). Changing the validity of a
+        `stamped` or `inferred` link makes it `curated`.
+      tags: [Links]
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: schemas/link-patch.json
+      responses:
+        '200':
+          description: Updated.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/link.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+    delete:
+      summary: Remove a link
+      operationId: DELETE_entity_link
+      description: |
+        Removes the link. If the linker would recreate it from a stamp or structural
+        evidence, it is instead recorded as **suppressed**, so it stays removed.
+      tags: [Links]
+      responses:
+        '204':
+          description: Removed.
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+
+  /entities/{entity_id}/status:
+    parameters:
+      - $ref: '#/components/parameters/entity_id'
+    get:
+      summary: What an entity has, and what it is missing
+      operationId: GET_entity_status
+      description: |
+        Expected = every `required` role × its expected keys (contract.md §5). Present =
+        roles with a link valid at `at` (default: now).
+      tags: [Links]
+      parameters:
+        - $ref: '#/components/parameters/at'
+      responses:
+        '200':
+          description: The status.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/entity-status.json
+              example:
+                $ref: examples/entity-status-get-200.json
+        '404':
+          $ref: '#/components/responses/404'
+
+  /entities/{entity_id}/resolve:
+    parameters:
+      - $ref: '#/components/parameters/entity_id'
+    get:
+      summary: The target serving a role at a time
+      operationId: GET_entity_resolve
+      description: |-
+        The link for `role` (and `key.{name}`) valid at `at` — default: the newest open link — with its tiers. This is what a viewer calls instead of deriving ids.
+      tags: [Links]
+      parameters:
+        - name: role
+          in: query
+          required: true
+          schema:
+            $ref: schemas/role.json
+        - $ref: '#/components/parameters/key_filter'
+        - $ref: '#/components/parameters/at'
+      responses:
+        '200':
+          description: The resolution.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/resolution.json
+        '404':
+          $ref: '#/components/responses/404'
+
+  /entities/{entity_id}/suggestions:
+    parameters:
+      - $ref: '#/components/parameters/entity_id'
+    get:
+      summary: Candidate links a person should confirm
+      operationId: GET_entity_suggestions
+      description: Heuristic matches (e.g. label similarity). A suggestion is never a link until a person accepts it.
+      tags: [Links]
+      parameters:
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          description: Suggestions.
+          headers:
+            Link:
+              $ref: '#/components/headers/Link'
+            X-Paging-NextKey:
+              $ref: '#/components/headers/X-Paging-NextKey'
+            X-Paging-Limit:
+              $ref: '#/components/headers/X-Paging-Limit'
+            X-Paging-Count:
+              $ref: '#/components/headers/X-Paging-Count'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/suggestion.json
+        '404':
+          $ref: '#/components/responses/404'
+
+  /entities/{entity_id}/suggestions/{suggestion_id}:
+    parameters:
+      - $ref: '#/components/parameters/entity_id'
+      - $ref: '#/components/parameters/suggestion_id'
+    post:
+      summary: Accept a suggestion
+      operationId: POST_entity_suggestion_accept
+      description: Creates a `curated` link from the suggestion (the same validation as `POST .../links`).
+      tags: [Links]
+      responses:
+        '201':
+          description: Accepted.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/link.json
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+    delete:
+      summary: Reject a suggestion
+      operationId: DELETE_entity_suggestion
+      description: Rejected suggestions are remembered, so the same candidate is not suggested again.
+      tags: [Links]
+      responses:
+        '204':
+          description: Rejected.
+        '404':
+          $ref: '#/components/responses/404'
+
+  /links:
+    head:
+      summary: Find which entities a TAMS/TADS object serves
+      operationId: HEAD_links
+      description: Return the paging headers of the reverse lookup, as `GET` does with the same filters, without a body.
+      tags: [Links]
+      parameters:
+        - $ref: '#/components/parameters/store'
+        - $ref: '#/components/parameters/target_kind'
+        - $ref: '#/components/parameters/target_id'
+        - $ref: '#/components/parameters/role'
+        - $ref: '#/components/parameters/origin'
+        - $ref: '#/components/parameters/at'
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/paged_headers_only'
+        '400':
+          $ref: '#/components/responses/400_query'
+    get:
+      summary: Find which entities a TAMS/TADS object serves
+      operationId: GET_links
+      description: |-
+        The reverse lookup: "which channel is flow X?". At least one of `target_id` or `role` is required.
+      tags: [Links]
+      parameters:
+        - $ref: '#/components/parameters/store'
+        - $ref: '#/components/parameters/target_kind'
+        - $ref: '#/components/parameters/target_id'
+        - $ref: '#/components/parameters/role'
+        - $ref: '#/components/parameters/origin'
+        - $ref: '#/components/parameters/at'
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          description: Links.
+          headers:
+            Link:
+              $ref: '#/components/headers/Link'
+            X-Paging-NextKey:
+              $ref: '#/components/headers/X-Paging-NextKey'
+            X-Paging-Limit:
+              $ref: '#/components/headers/X-Paging-Limit'
+            X-Paging-Count:
+              $ref: '#/components/headers/X-Paging-Count'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/link.json
+        '400':
+          $ref: '#/components/responses/400_query'
+
+  /collections:
+    head:
+      summary: List collections
+      operationId: HEAD_collections
+      description: Return the `/collections` paging headers, as `GET` does, without a body.
+      tags: [Collections]
+      parameters:
+        - $ref: '#/components/parameters/parent_filter'
+        - $ref: '#/components/parameters/pinned'
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '401':
+          $ref: '#/components/responses/401'
+        '200':
+          $ref: '#/components/responses/paged_headers_only'
+    get:
+      summary: List collections
+      operationId: GET_collections
+      description: Collections, and their resolved member counts.
+      tags: [Collections]
+      parameters:
+        - $ref: '#/components/parameters/parent_filter'
+        - $ref: '#/components/parameters/pinned'
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '401':
+          $ref: '#/components/responses/401'
+        '200':
+          description: Groups.
+          headers:
+            Link:
+              $ref: '#/components/headers/Link'
+            X-Paging-NextKey:
+              $ref: '#/components/headers/X-Paging-NextKey'
+            X-Paging-Limit:
+              $ref: '#/components/headers/X-Paging-Limit'
+            X-Paging-Count:
+              $ref: '#/components/headers/X-Paging-Count'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/collection.json
+    post:
+      summary: Create a collection
+      operationId: POST_collections
+      description: A static collection lists its members; a rule collection computes them from metadata facets and tags.
+      tags: [Collections]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/collection-post.json
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/collection.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '409':
+          $ref: '#/components/responses/409'
+
+  /collections/{collection_id}:
+    parameters:
+      - $ref: '#/components/parameters/collection_id'
+    get:
+      summary: Get a collection
+      operationId: GET_collection
+      description: 'Return a collection: static or rule, its rule if any, its parent and its member count.'
+      tags: [Collections]
+      responses:
+        '200':
+          description: The group.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/collection.json
+        '404':
+          $ref: '#/components/responses/404'
+    put:
+      summary: Replace a collection
+      operationId: PUT_collection
+      description: A `parent_id` that would make a cycle is a 409.
+      tags: [Collections]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/collection-post.json
+      responses:
+        '200':
+          description: Replaced.
+          content:
+            application/json:
+              schema:
+                $ref: schemas/collection.json
+        '400':
+          $ref: '#/components/responses/400_body'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+    delete:
+      summary: Delete a collection
+      operationId: DELETE_collection
+      description: Refused (409) while child collections refer to it.
+      tags: [Collections]
+      responses:
+        '204':
+          description: Deleted.
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+
+  /collections/{collection_id}/members/{entity_id}:
+    parameters:
+      - $ref: '#/components/parameters/collection_id'
+      - $ref: '#/components/parameters/entity_id'
+    put:
+      summary: Add an entity to a static collection
+      operationId: PUT_collection_member
+      description: 400 for a rule collection, whose membership is computed.
+      tags: [Collections]
+      responses:
+        '204':
+          description: Added (or already a member).
+        '400':
+          $ref: '#/components/responses/400_body'
+        '404':
+          $ref: '#/components/responses/404'
+    delete:
+      summary: Remove an entity from a static collection
+      operationId: DELETE_collection_member
+      description: Remove an entity from a static collection. A rule collection's membership is computed, so this is a 400 there.
+      tags: [Collections]
+      responses:
+        '204':
+          description: Removed.
+        '404':
+          $ref: '#/components/responses/404'
+
+  /collections/{collection_id}/entities:
+    parameters:
+      - $ref: '#/components/parameters/collection_id'
+    get:
+      summary: The entities in a collection
+      operationId: GET_collection_entities
+      description: "Resolved membership: static members, or the rule's matches, plus child collections' members."
+      tags: [Collections]
+      parameters:
+        - name: recursive
+          in: query
+          description: Include child collections' members.
+          schema:
+            type: boolean
+            default: true
+        - $ref: '#/components/parameters/paged_page'
+        - $ref: '#/components/parameters/paged_limit'
+      responses:
+        '200':
+          description: Entities.
+          headers:
+            Link:
+              $ref: '#/components/headers/Link'
+            X-Paging-NextKey:
+              $ref: '#/components/headers/X-Paging-NextKey'
+            X-Paging-Limit:
+              $ref: '#/components/headers/X-Paging-Limit'
+            X-Paging-Count:
+              $ref: '#/components/headers/X-Paging-Count'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/entity.json
+        '404':
+          $ref: '#/components/responses/404'
+
+webhooks:
+  schemas/created:
+    $ref: '#/components/pathItems/webhook_delivery'
+  schemas/updated:
+    $ref: '#/components/pathItems/webhook_delivery'
+  schemas/deleted:
+    $ref: '#/components/pathItems/webhook_delivery'
+  entities/created:
+    $ref: '#/components/pathItems/webhook_delivery'
+  entities/updated:
+    $ref: '#/components/pathItems/webhook_delivery'
+  entities/deleted:
+    $ref: '#/components/pathItems/webhook_delivery'
+  links/created:
+    $ref: '#/components/pathItems/webhook_delivery'
+  links/updated:
+    $ref: '#/components/pathItems/webhook_delivery'
+  links/deleted:
+    $ref: '#/components/pathItems/webhook_delivery'
+  collections/created:
+    $ref: '#/components/pathItems/webhook_delivery'
+  collections/updated:
+    $ref: '#/components/pathItems/webhook_delivery'
+  collections/deleted:
+    $ref: '#/components/pathItems/webhook_delivery'
+components:
+
+  pathItems:
+    webhook_delivery:
+      post:
+        summary: A TEDS event delivered to a registered webhook
+        security:
+          - {}
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: schemas/webhook-event.json
+        responses:
+          '200':
+            description: Received.
+
+  securitySchemes:
+    bearer_token_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        HTTP bearer token authentication. With `SECURITY_PROVIDER=keycloak` the token is
+        **signature-verified** against the realm's JWKS, with `exp` required and `iss`
+        checked, and must carry `sub`.
+
+    url_token_auth:
+      type: apiKey
+      name: access_token
+      in: query
+      description: |
+        URL token authentication, as in TADS: the Bearer token as the `access_token` query
+        parameter. Used only when the request has no `Authorization` header.
+    basic_auth:
+      type: http
+      scheme: basic
+      description: |
+        HTTP Basic. With `SECURITY_PROVIDER=basic` it is checked against `BASIC_AUTH_USERS`
+        (any credential when unset — announced in the startup log);
+        with `SECURITY_PROVIDER=keycloak` it is exchanged for a token by the realm's password
+        grant. As in TADS, prefer Bearer tokens: a password is long-lived.
+  headers:
+    Link:
+      description: "Paging cursor: `<url>; rel=\"next\"` when there is a next page."
+      schema:
+        type: string
+    X-Paging-NextKey:
+      description: Opaque value for `page` to fetch the next page. Absent on the last page.
+      schema:
+        type: string
+    X-Paging-Limit:
+      description: The limit applied (may be lower than requested).
+      schema:
+        type: integer
+    X-Paging-Count:
+      description: The number of items in this response.
+      schema:
+        type: integer
+    ETag:
+      description: Opaque version of the resource, for `If-Match`.
+      schema:
+        type: string
+
+  parameters:
+    paged_page:
+      name: page
+      in: query
+      description: Opaque cursor from `X-Paging-NextKey`. Omit for the first page.
+      schema:
+        type: string
+    paged_limit:
+      name: limit
+      in: query
+      description: Page size. Default 100, maximum 1000.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+    tag_filter:
+      name: tag.{name}
+      in: query
+      description: Resources with tag {name} whose value is in this comma-separated list (as TADS).
+      schema:
+        $ref: schemas/url-list.json
+    tag_exists:
+      name: tag_exists.{name}
+      in: query
+      description: true = has tag {name}; false = lacks it.
+      schema:
+        type: boolean
+    facet_filter:
+      name: facet.{name}
+      in: query
+      description: |
+        Entities whose metadata facet {name} is one of this comma-separated list. For an
+        array facet, any element matching counts. Requires `type` or `schema_id`.
+      schema:
+        $ref: schemas/url-list.json
+    key_filter:
+      name: key.{name}
+      in: query
+      description: Links whose key {name} equals this value, e.g. `key.lang=cy`.
+      schema:
+        type: string
+    if_match:
+      name: If-Match
+      in: header
+      description: Only apply the change if the resource's current ETag matches (412 otherwise).
+      schema:
+        type: string
+    schema_id:
+      name: schema_id
+      in: path
+      required: true
+      schema:
+        $ref: schemas/uuid.json
+    entity_id:
+      name: entity_id
+      in: path
+      required: true
+      schema:
+        $ref: schemas/uuid.json
+    link_id:
+      name: link_id
+      in: path
+      required: true
+      schema:
+        $ref: schemas/uuid.json
+    suggestion_id:
+      name: suggestion_id
+      in: path
+      required: true
+      schema:
+        $ref: schemas/uuid.json
+    webhook_id:
+      name: webhook_id
+      in: path
+      required: true
+      schema:
+        $ref: schemas/uuid.json
+    schema_family:
+      name: family
+      in: query
+      schema:
+        $ref: schemas/family.json
+    schema_version:
+      name: version
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+    include_deprecated:
+      name: include_deprecated
+      in: query
+      schema:
+        type: boolean
+        default: false
+    entity_type:
+      name: type
+      in: query
+      description: Entities whose schema is of this family (any version).
+      schema:
+        $ref: schemas/family.json
+    entity_schema_id:
+      name: schema_id
+      in: query
+      description: Entities of exactly this schema.
+      schema:
+        $ref: schemas/uuid.json
+    q:
+      name: q
+      in: query
+      description: Free text over the schema's `search` fields and `label`. Every word must match, in any order, ignoring case.
+      schema:
+        type: string
+        maxLength: 200
+    purpose:
+      name: purpose
+      in: query
+      description: Entities whose schema declares this purpose.
+      schema:
+        $ref: schemas/purpose.json
+    entity_status:
+      name: status
+      in: query
+      description: complete = every required role and expected key is present now.
+      schema:
+        type: string
+        enum: [complete, incomplete]
+    entity_sort:
+      name: sort
+      in: query
+      schema:
+        type: string
+        enum: [label, created, updated, activity]
+        default: label
+        description: "`activity`: live first, then by newest linked material."
+    order:
+      name: order
+      in: query
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: asc
+    role:
+      name: role
+      in: query
+      schema:
+        $ref: schemas/role.json
+    at:
+      name: at
+      in: query
+      description: A TAMS timestamp. Links valid at this instant.
+      schema:
+        $ref: schemas/timestamp.json
+    include_closed:
+      name: include_closed
+      in: query
+      description: Include links whose validity has ended.
+      schema:
+        type: boolean
+        default: true
+    store:
+      name: store
+      in: query
+      schema:
+        $ref: schemas/store.json
+    target_kind:
+      name: kind
+      in: query
+      schema:
+        $ref: schemas/target-kind.json
+    target_id:
+      name: target_id
+      in: query
+      description: The TAMS flow/source or TADS track id.
+      schema:
+        $ref: schemas/uuid.json
+    origin:
+      name: origin
+      in: query
+      schema:
+        $ref: schemas/origin.json
+    parent_filter:
+      name: parent_id
+      in: query
+      description: Children of this collection; `none` for top-level collections.
+      schema:
+        type: string
+    pinned:
+      name: pinned
+      in: query
+      schema:
+        type: boolean
+    collection_id:
+      name: collection_id
+      in: path
+      required: true
+      schema:
+        $ref: schemas/uuid.json
+    in_collection:
+      name: collection
+      in: query
+      description: Entities in any of these collections (comma-separated), recursively.
+      schema:
+        $ref: schemas/url-list.json
+    entity_ids:
+      name: id
+      in: query
+      description: Only these entities (comma-separated ids).
+      schema:
+        $ref: schemas/url-list.json
+  responses:
+    paged_headers_only:
+      description: Headers only.
+      headers:
+        Link:
+          $ref: '#/components/headers/Link'
+        X-Paging-NextKey:
+          $ref: '#/components/headers/X-Paging-NextKey'
+        X-Paging-Limit:
+          $ref: '#/components/headers/X-Paging-Limit'
+        X-Paging-Count:
+          $ref: '#/components/headers/X-Paging-Count'
+    400_query:
+      description: Bad request. Invalid query options.
+      content:
+        application/json:
+          schema:
+            $ref: schemas/error.json
+    400_body:
+      description: Bad request. The body is not valid (including schema validation failures, listed in `details`).
+      content:
+        application/json:
+          schema:
+            $ref: schemas/error.json
+          example:
+            $ref: examples/response-400-body.json
+    '401':
+      description: Missing, unverifiable or expired token.
+      content:
+        application/json:
+          schema:
+            $ref: schemas/error.json
+    '403':
+      description: 'Forbidden: the change is to something immutable (a schema definition).'
+      content:
+        application/json:
+          schema:
+            $ref: schemas/error.json
+    '404':
+      description: Not found.
+      content:
+        application/json:
+          schema:
+            $ref: schemas/error.json
+    '409':
+      description: Conflict (overlapping validity, duplicate family/version, in use, collection cycle).
+      content:
+        application/json:
+          schema:
+            $ref: schemas/error.json
+    '412':
+      description: The resource changed since the given `If-Match`.
+      content:
+        application/json:
+          schema:
+            $ref: schemas/error.json
+    '422':
+      description: The link target does not exist in its store, or does not satisfy the role's `match`.
+      content:
+        application/json:
+          schema:
+            $ref: schemas/error.json
+          example:
+            $ref: examples/response-422.json
