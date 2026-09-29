@@ -1,0 +1,20 @@
+{
+    "type": "object",
+    "description": "A JSON Merge Patch of `tags`: a value sets that tag, and null removes it. Names starting `teds.` are reserved for the server.",
+    "additionalProperties": {
+        "anyOf": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            {
+                "type": "null"
+            }
+        ]
+    }
+}

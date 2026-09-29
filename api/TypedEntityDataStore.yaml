@@ -292,12 +292,14 @@ paths:
       summary: Upload a schema
       operationId: POST_schemas
       description: |
-        The server assigns the id. To register idempotently under a known id (core
-        schemas, producers), use `PUT /schemas/{schema_id}` instead.
+        The server assigns the id, and it is deterministic: `v5(NS, "schema:<family>:<version>")`
+        (ADR 0003), so the same schema has the same id on every host. To register
+        idempotently (core schemas, producers at start-up), use `PUT /schemas/{schema_id}`.
 
         The definition is validated against the meta-schema and the rules in
         AppNote 0002. `(family, version)` must be unique. Uploading version N+1
         of a family returns compatibility `warnings` (ADR 0003) but is not refused.
+        `teds.*` families are reserved for the core schemas (ADR 0010): uploading one is 403.
       tags: [Schemas]
       requestBody:
         required: true
@@ -362,6 +364,10 @@ paths:
           startup is therefore a no-op.
         * **Present, different `definition`** → **403**. A definition is immutable; a
           change is a new version under a new id.
+
+        `schema_id` must be the definition's deterministic id,
+        `v5(NS, "schema:<family>:<version>")` (ADR 0003); any other id is 400. A `teds.*`
+        family that is not one of the server's own core schemas is 403 (ADR 0010).
       tags: [Schemas]
       requestBody:
         required: true
@@ -391,7 +397,7 @@ paths:
     delete:
       summary: Delete a schema
       operationId: DELETE_schema
-      description: Refused with 409 while any entity uses it. Deprecate it instead.
+      description: Refused with 409 while any entity uses it; deprecate it instead. A core schema cannot be deleted (403).
       tags: [Schemas]
       responses:
         '204':
@@ -560,9 +566,10 @@ paths:
       summary: Create or replace an entity
       operationId: PUT_entity
       description: |
-        Idempotent create-or-replace under a caller-chosen id (Architect uses the id it
-        generated for the channel node). With `If-Match`, the replace only happens if the
-        entity is unchanged since that ETag (412 otherwise).
+        Idempotent create-or-replace under a caller-chosen id (for example, the id a design
+        tool generated for a channel). With `If-Match`, the replace only happens if the
+        entity is unchanged since that ETag (412 otherwise). A replace cannot change the
+        entity's `schema_id` (403); use `/migrate`.
       tags: [Entities]
       parameters:
         - $ref: '#/components/parameters/if_match'
@@ -605,7 +612,7 @@ paths:
       description: |
         JSON Merge Patch (RFC 7396) over `label`, `description`, `tags` and `metadata`.
         The patched metadata must still validate against the entity's schema.
-        `schema_id` and `org` cannot be patched (use `/migrate`).
+        `schema_id` cannot be patched (use `/migrate`).
       tags: [Entities]
       parameters:
         - $ref: '#/components/parameters/if_match'
@@ -746,7 +753,7 @@ paths:
         Validated against the entity schema's role declaration (store, kind, `match`,
         cardinality, key, tier). **The target is looked up in TAMS/TADS** and must exist
         and satisfy `match` (422 otherwise, with the reason). Written with origin
-        `declared` when the caller owns the entity through Architect's service account,
+        `declared` when the caller is the system that deployed the entity (AppNote 0003),
         `curated` otherwise. A link that would overlap another of the same
         role/key/tier is a 409.
       tags: [Links]
@@ -1529,7 +1536,7 @@ components:
           schema:
             $ref: schemas/error.json
     '403':
-      description: 'Forbidden: the change is to something immutable (a schema definition).'
+      description: 'Forbidden: the change is to something immutable or reserved (a schema definition, a core schema, an entity''s schema).'
       content:
         application/json:
           schema:
