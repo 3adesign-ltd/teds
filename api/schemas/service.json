@@ -24,11 +24,11 @@
         },
         "contract_version": {
             "type": "string",
-            "description": "The tag contract version (contract.md §3)."
+            "description": "The tag contract version (AppNote 0001)."
         },
         "role_vocabulary_version": {
             "type": "string",
-            "description": "The role vocabulary version (contract.md §4)."
+            "description": "The role vocabulary version (vocabulary/roles.json, AppNote 0002)."
         }
     }
 }

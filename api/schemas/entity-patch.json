@@ -12,7 +12,8 @@
             ]
         },
         "tags": {
-            "type": "object"
+            "$ref": "tags.json",
+            "description": "Merged into the entity's tags (JSON Merge Patch: null removes one). Names starting `teds.` are reserved for the server."
         },
         "metadata": {
             "type": "object"

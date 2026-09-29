@@ -9,11 +9,11 @@ info:
     **Schema**. It links each entity to the TAMS flows/sources and TADS tracks that
     serve it, by **role**, **key** and **validity timerange**; and groups entities into
     **collections**. Everything it holds is schema-driven: per-user data such as an app's
-    settings or favourites is an ordinary entity of an app-supplied schema (contract P0-18).
+    settings or favourites is an ordinary entity of an app-supplied schema (ADR 0008).
 
     TEDS stores no media (that is TAMS) and no timed data (that is TADS), and it
     decides **no rights**: who may see or do what is the job of an access-control
-    service in front of it (contract.md P0-14). TEDS has no dependency on any
+    service in front of it (ADR 0006). TEDS has no dependency on any
     other service.
 
     ## Conventions shared with TADS
@@ -27,7 +27,7 @@ info:
       only the server writes them, and a client write is a 400.
     * A Schema's `definition` is immutable (as a TADS Payload Schema's `schema` is).
     * Authentication offers the same three schemes as TADS — Bearer token, URL token and
-      Basic — and a deployment chooses which provider checks them (contract.md P0-15).
+      Basic — and a deployment chooses which provider checks them (ADR 0007).
 
     ## Rights
 
@@ -39,7 +39,9 @@ info:
 
     Timestamps and timeranges use the TAMS formats (`<sec>:<nsec>`, `[a_b)`).
 
-    See `contract.md` for the tag contract, role vocabulary and link rules.
+    See the repository's `docs/`: the tag contract is AppNote 0001, the role vocabulary
+    AppNote 0002 (and `vocabulary/roles.json`), the link rules AppNote 0003, and every decision
+    is an ADR.
   license:
     name: Proprietary — 3adesign
     identifier: LicenseRef-3adesign-Proprietary
@@ -60,7 +62,7 @@ tags:
     description: Deliver notifications of changes to external systems.
   - name: Schemas
     description: |-
-      Uploaded, immutable definitions. Every entity is validated against one — including per-user data such as an app's settings, which is an ordinary entity type (contract P0-18).
+      Uploaded, immutable definitions. Every entity is validated against one — including per-user data such as an app's settings, which is an ordinary entity type (ADR 0008).
   - name: Entities
     description: Typed entities and their metadata.
   - name: Links
@@ -294,8 +296,8 @@ paths:
         schemas, producers), use `PUT /schemas/{schema_id}` instead.
 
         The definition is validated against the meta-schema and the rules in
-        contract.md §5. `(org, family, version)` must be unique. Uploading version N+1
-        of a family returns compatibility `warnings` (contract.md §8) but is not refused.
+        AppNote 0002. `(family, version)` must be unique. Uploading version N+1
+        of a family returns compatibility `warnings` (ADR 0003) but is not refused.
       tags: [Schemas]
       requestBody:
         required: true
@@ -841,7 +843,7 @@ paths:
       summary: What an entity has, and what it is missing
       operationId: GET_entity_status
       description: |
-        Expected = every `required` role × its expected keys (contract.md §5). Present =
+        Expected = every `required` role × its expected keys (AppNote 0002). Present =
         roles with a link valid at `at` (default: now).
       tags: [Links]
       parameters:
