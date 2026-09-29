@@ -343,7 +343,7 @@ def check_agreement() -> None:
          sorted(meta["roleDeclaration"]["properties"]["kind"]["enum"]))
 
 
-NEUTRAL = re.compile(r"(?i)\b(phrame|bbc)\b")
+NEUTRAL = re.compile(r"(?i)\b(phrame|bbc|architect)\b")
 # The design began in a contract document that is not part of this repository; its
 # decisions are ADRs and its conventions AppNotes. A reference to it is a dead link.
 DEAD_REFS = re.compile(r"contract(\.md)?\s*(§|P0-)|contract\.md")
