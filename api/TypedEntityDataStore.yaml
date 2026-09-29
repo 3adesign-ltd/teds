@@ -752,7 +752,9 @@ paths:
       description: |
         Validated against the entity schema's role declaration (store, kind, `match`,
         cardinality, key, tier). **The target is looked up in TAMS/TADS** and must exist
-        and satisfy `match` (422 otherwise, with the reason). Written with origin
+        and satisfy `match` (ADR 0012): 422 `store_not_configured`, `target_missing` or
+        `target_mismatch` otherwise, with the reason, and 503 `store_unavailable` when the
+        store cannot be reached (the link is not written). Written with origin
         `declared` when the caller is the system that deployed the entity (AppNote 0003),
         `curated` otherwise. A link that would overlap another of the same
         role/key/tier is a 409.
@@ -780,6 +782,8 @@ paths:
           $ref: '#/components/responses/409'
         '422':
           $ref: '#/components/responses/422'
+        '503':
+          $ref: '#/components/responses/503'
 
   /entities/{entity_id}/links/{link_id}:
     parameters:
@@ -950,6 +954,8 @@ paths:
           $ref: '#/components/responses/409'
         '422':
           $ref: '#/components/responses/422'
+        '503':
+          $ref: '#/components/responses/503'
     delete:
       summary: Reject a suggestion
       operationId: DELETE_entity_suggestion
@@ -1443,7 +1449,7 @@ components:
     at:
       name: at
       in: query
-      description: A TAMS timestamp. Links valid at this instant.
+      description: A TAMS timestamp (TAI, ADR 0011). Links valid at this instant; default now.
       schema:
         $ref: schemas/timestamp.json
     include_closed:
@@ -1560,10 +1566,16 @@ components:
           schema:
             $ref: schemas/error.json
     '422':
-      description: The link target does not exist in its store, or does not satisfy the role's `match`.
+      description: The link's store is not configured, its target does not exist there, or the target does not satisfy the role's `match` (ADR 0012).
       content:
         application/json:
           schema:
             $ref: schemas/error.json
           example:
             $ref: examples/response-422.json
+    '503':
+      description: The link's store could not be reached, or answered with a server error; nothing was written (ADR 0012).
+      content:
+        application/json:
+          schema:
+            $ref: schemas/error.json

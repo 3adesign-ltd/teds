@@ -60,6 +60,6 @@ Whoever registers a payload schema in TADS should tag it, so that tracks using i
 
 ### Time
 
-Link validity uses TAMS timestamps and timeranges.
+Link validity uses TAMS timestamps and timeranges, on the TAI timescale ([ADR 0011](../adr/0011-media-times-are-tai.md)).
 TEDS joins TAMS and TADS timelines, so it depends on both using the same timeline.
 A deployment in which recorders label TAMS timestamps as UTC rather than TAI will see links and spans offset by the TAI–UTC difference (37 seconds at the time of writing), and should resolve that before relying on TEDS spans.
