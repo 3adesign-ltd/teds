@@ -6,7 +6,11 @@
             "$ref": "timerange.json"
         },
         "evidence": {
-            "type": "string"
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "null removes it (JSON Merge Patch)."
         }
     }
 }
