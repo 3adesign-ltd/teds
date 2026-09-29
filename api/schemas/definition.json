@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "urn:teds:meta:definition:1",
     "title": "TEDS schema definition",
-    "description": "The immutable `definition` of a TEDS schema: an entity schema, which validates /entities. Per-user data (an app's settings, favourites) is an ordinary entity schema too (contract P0-18). Rules this document cannot express are listed in contract.md §5 and checked by the server.",
+    "description": "The immutable `definition` of a TEDS schema: an entity schema, which validates /entities. Per-user data (an app's settings, favourites) is an ordinary entity schema too (ADR 0008). Rules this document cannot express are listed in AppNote 0002 and checked by the server.",
     "type": "object",
     "required": [
         "$teds"

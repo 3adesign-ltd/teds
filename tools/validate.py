@@ -344,6 +344,9 @@ def check_agreement() -> None:
 
 
 NEUTRAL = re.compile(r"(?i)\b(phrame|bbc)\b")
+# The design began in a contract document that is not part of this repository; its
+# decisions are ADRs and its conventions AppNotes. A reference to it is a dead link.
+DEAD_REFS = re.compile(r"contract(\.md)?\s*(§|P0-)|contract\.md")
 
 
 def check_neutral() -> None:
@@ -356,6 +359,9 @@ def check_neutral() -> None:
         for m in NEUTRAL.finditer(text):
             line = text.count("\n", 0, m.start()) + 1
             err(f"{rel(p)}:{line}", f"names {m.group(0)!r}; the normative files must be product-neutral")
+        for m in DEAD_REFS.finditer(text):
+            line = text.count("\n", 0, m.start()) + 1
+            err(f"{rel(p)}:{line}", f"refers to {m.group(0)!r}, which is not in this repository; cite the ADR or AppNote")
 
 
 def check_docs() -> None:

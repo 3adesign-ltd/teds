@@ -8,7 +8,7 @@
             "properties": {
                 "warnings": {
                     "type": "array",
-                    "description": "Compatibility warnings against the family's previous version (contract.md §8).",
+                    "description": "Compatibility warnings against the family's previous version (ADR 0003).",
                     "items": {
                         "type": "string"
                     }
