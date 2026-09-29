@@ -32,3 +32,5 @@ For more information on how we use ADRs, see the ADR [README](./adr/README.md).
 | [0008](./adr/0008-per-user-data-is-ordinary-entities.md) | Per-user data is ordinary entities |
 | [0009](./adr/0009-collections-are-data.md) | Collections are data |
 | [0010](./adr/0010-a-product-neutral-core.md) | A product-neutral core |
+| [0011](./adr/0011-media-times-are-tai.md) | Media times are TAI |
+| [0012](./adr/0012-a-link-target-is-checked-in-its-store.md) | A link target is checked in its store |

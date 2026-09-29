@@ -14,7 +14,7 @@
         },
         "service": {
             "type": "string",
-            "description": "Which configured TAMS/TADS instance, when TEDS is given more than one (`TEDS_STORES`). Omitted = the default."
+            "description": "Which configured instance of the store, when the server is configured with more than one (ADR 0012). Omitted = the default instance."
         }
     }
 }
