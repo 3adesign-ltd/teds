@@ -9,7 +9,7 @@ For more information on how we use application notes, see the AppNote [README](.
 | --- | --- |
 | [0001](./appnotes/0001-using-teds-with-tams-and-tads.md) | Using TEDS with TAMS and TADS |
 | [0002](./appnotes/0002-roles-keys-and-timeline-types.md) | Roles, keys and timeline types |
-| [0003](./appnotes/0003-registering-channels-automatically.md) | Registering channels automatically |
+| [0003](./appnotes/0003-registering-a-channel.md) | Registering a channel |
 | [0004](./appnotes/0004-per-user-data.md) | Per-user data |
 | [0005](./appnotes/0005-composing-teds-with-an-access-control-service.md) | Composing TEDS with an access-control service |
 
@@ -26,11 +26,12 @@ For more information on how we use ADRs, see the ADR [README](./adr/README.md).
 | [0002](./adr/0002-schema-definitions-are-envelopes.md) | Schema definitions are envelopes |
 | [0003](./adr/0003-schemas-are-immutable-and-registration-is-idempotent.md) | Schemas are immutable, and registration is idempotent |
 | [0004](./adr/0004-links-carry-role-key-validity-and-tier.md) | Links carry role, key, validity and tier |
-| [0005](./adr/0005-automatic-linking.md) | Automatic linking: declared, stamped, inferred, curated |
+| [0005](./adr/0005-automatic-linking.md) | Automatic linking: declared, stamped, inferred, curated (superseded by 0013) |
 | [0006](./adr/0006-teds-decides-no-rights.md) | TEDS decides no rights |
 | [0007](./adr/0007-authentication-modes-as-tams-and-tads.md) | Authentication modes as TAMS and TADS |
 | [0008](./adr/0008-per-user-data-is-ordinary-entities.md) | Per-user data is ordinary entities |
 | [0009](./adr/0009-collections-are-data.md) | Collections are data |
 | [0010](./adr/0010-a-product-neutral-core.md) | A product-neutral core |
 | [0011](./adr/0011-media-times-are-tai.md) | Media times are TAI |
-| [0012](./adr/0012-a-link-target-is-checked-in-its-store.md) | A link target is checked in its store |
+| [0012](./adr/0012-a-link-target-is-checked-in-its-store.md) | A link target is checked in its store (superseded by 0013) |
+| [0013](./adr/0013-teds-does-not-check-link-targets.md) | TEDS does not check link targets, and does no automatic linking |

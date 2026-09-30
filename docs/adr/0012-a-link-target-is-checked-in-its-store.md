@@ -1,5 +1,5 @@
 ---
-status: "accepted"
+status: "superseded by [ADR-0013](0013-teds-does-not-check-link-targets.md)"
 ---
 # A link target is checked in its store
 

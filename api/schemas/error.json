@@ -7,7 +7,7 @@
     "properties": {
         "error": {
             "type": "string",
-            "description": "A stable machine-readable code (`validation_failed`, `not_found`, `immutable`, `overlap`, `target_missing`, `target_mismatch`, `store_not_configured`, `store_unavailable`, …)."
+            "description": "A stable machine-readable code (`validation_failed`, `not_found`, `immutable`, `overlap`, `role_mismatch`, …)."
         },
         "message": {
             "type": "string"

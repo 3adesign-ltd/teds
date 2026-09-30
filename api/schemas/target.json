@@ -14,7 +14,7 @@
         },
         "service": {
             "type": "string",
-            "description": "Which configured instance of the store, when the server is configured with more than one (ADR 0012). Omitted = the default instance."
+            "description": "Which instance of the store the writer means, when a system has more than one. TEDS stores it and does not interpret it (ADR 0013). Omitted = the only, or default, instance."
         }
     }
 }

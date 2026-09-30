@@ -1,9 +1,8 @@
 {
     "type": "string",
+    "description": "`declared`: written by the system that deployed the entity (a declaring principal); `curated`: written by anyone else.",
     "enum": [
         "declared",
-        "stamped",
-        "inferred",
         "curated"
     ]
 }

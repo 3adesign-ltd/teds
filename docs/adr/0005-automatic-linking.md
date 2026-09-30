@@ -1,5 +1,5 @@
 ---
-status: "accepted"
+status: "superseded by [ADR-0013](0013-teds-does-not-check-link-targets.md)"
 ---
 # Automatic linking: declared, stamped, inferred, curated
 
@@ -30,7 +30,7 @@ How should TEDS turn that evidence into links, and what happens when two sources
 
 Chosen option: "Rules in each schema, applied by the server to tags and structure, with origins and a precedence order".
 
-Each role in a schema has an ordered list of **link rules** ([AppNote 0003](../appnotes/0003-registering-channels-automatically.md)):
+Each role in a schema has an ordered list of **link rules** ([AppNote 0003](../appnotes/0003-registering-a-channel.md)):
 
 | Rule | Matches | Origin |
 |---|---|---|

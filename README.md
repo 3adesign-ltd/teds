@@ -42,11 +42,9 @@ An **Entity** is an instance of a schema, validated against it on every write.
 A **Link** connects an entity to a TAMS flow or source, or a TADS track, in a role, optionally for a **key** (such as a subtitle language), over a **validity timerange**.
 When a recorder restarts onto a new flow, the channel gains a second link from that moment on, and "the channel at time T" resolves to the right one.
 
-Links can be written directly, but the intended way is for them to appear on their own.
-A producer stamps what it writes with a few tags.
-A process that derives from another flow copies the stamp forward.
-TEDS reads the evidence TAMS and TADS already hold (flow collections, timeline references, derivation) and applies each schema's own linking rules.
-See [AppNote 0003](./docs/appnotes/0003-registering-channels-automatically.md).
+Links are written through the API by the system that deploys an entity, or by a person.
+TEDS never calls TAMS or TADS: it does not check that a link's target exists or fits the role's `match`, so the client writing the link checks that first ([ADR 0013](./docs/adr/0013-teds-does-not-check-link-targets.md)).
+See [AppNote 0003](./docs/appnotes/0003-registering-a-channel.md).
 
 Entities can be grouped into **Collections**, which are static lists or rules such as "every channel whose provider is X".
 
@@ -74,8 +72,7 @@ TEDS is at an early stage, and these are the questions we are working through.
 
 ### Linking
 
-- Are the five link rules (declared, stamped, inferred by collection, by derivation, by timeline reference) sufficient, or do real deployments need others?
-- Should a label-similarity *suggestion* ever be promoted automatically?
+- Every client that writes links checks its targets itself (ADR 0013): should that check be offered as a shared client library, so that clients agree on what `match` means?
 
 ### Schemas
 

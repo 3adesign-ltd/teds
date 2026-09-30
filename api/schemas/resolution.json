@@ -74,9 +74,9 @@
                 "id": "1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e"
             },
             "valid": "[1790170793:0_",
-            "origin": "stamped",
+            "origin": "declared",
             "created": "2026-09-28T10:00:00Z",
-            "created_by": "teds-linker"
+            "created_by": "channel-setup"
         },
         "tiers": [
             {
@@ -95,9 +95,9 @@
                         "id": "2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f"
                     },
                     "valid": "[1790170793:0_",
-                    "origin": "stamped",
+                    "origin": "declared",
                     "created": "2026-09-28T10:00:00Z",
-                    "created_by": "teds-linker"
+                    "created_by": "channel-setup"
                 }
             }
         ]

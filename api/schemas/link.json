@@ -31,7 +31,6 @@
                     "type": "string",
                     "enum": [
                         "superseded",
-                        "target_deleted",
                         "manual",
                         "role_removed"
                     ]
