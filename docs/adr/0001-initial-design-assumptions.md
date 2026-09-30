@@ -35,7 +35,7 @@ The assumptions are:
 2. Every entity is an instance of an uploaded, immutable **entity schema**, and is validated against it ([ADR 0002](./0002-schema-definitions-are-envelopes.md), [ADR 0003](./0003-schemas-are-immutable-and-registration-is-idempotent.md)).
 3. An entity is connected to the objects that serve it by **links**: a role, an optional key, a store, a target, and a validity timerange ([ADR 0004](./0004-links-carry-role-key-validity-and-tier.md)).
 4. Links are made automatically wherever the evidence allows ([ADR 0005](./0005-automatic-linking.md)).
-5. TEDS stores no media and no timed data, decides no rights ([ADR 0006](./0006-teds-decides-no-rights.md)), and depends on no other service to run ([ADR 0012](./0012-a-link-target-is-checked-in-its-store.md) says what adding a link needs).
+5. TEDS stores no media and no timed data, decides no rights ([ADR 0006](./0006-teds-decides-no-rights.md)), and depends on no other service: it never calls TAMS or TADS ([ADR 0013](./0013-teds-does-not-check-link-targets.md)).
 6. TEDS follows TADS conventions (paging, tags, webhooks, immutable schemas, authentication) unless an ADR records a reason not to.
 
 ### Consequences

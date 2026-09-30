@@ -250,6 +250,7 @@
                     }
                 },
                 "match": {
+                    "description": "What a target must be to fit this role. TEDS does not check it (ADR 0013): the client writing a link checks its target against it.",
                     "$ref": "#/$defs/match"
                 },
                 "tiers": {
@@ -273,9 +274,13 @@
                     }
                 },
                 "tierLink": {
+                    "description": "Deprecated and ignored (ADR 0013): TEDS does no automatic linking. Accepted only so that schemas registered before ADR 0013 stay valid; a new schema should leave it out.",
+                    "deprecated": true,
                     "$ref": "#/$defs/tagsRule"
                 },
                 "link": {
+                    "description": "Deprecated and ignored (ADR 0013): TEDS does no automatic linking. Accepted only so that schemas registered before ADR 0013 stay valid; a new schema should leave it out.",
+                    "deprecated": true,
                     "type": "array",
                     "minItems": 1,
                     "items": {
@@ -353,18 +358,6 @@
                                 "const": "track"
                             }
                         }
-                    }
-                },
-                {
-                    "if": {
-                        "required": [
-                            "tiers"
-                        ]
-                    },
-                    "then": {
-                        "required": [
-                            "tierLink"
-                        ]
                     }
                 }
             ]

@@ -14,7 +14,8 @@ info:
     TEDS stores no media (that is TAMS) and no timed data (that is TADS), and it
     decides **no rights**: who may see or do what is the job of an access-control
     service in front of it (ADR 0006). TEDS has no dependency on any
-    other service.
+    other service: it never calls TAMS or TADS, and does not check that a link's
+    target exists or fits its role. The client writing a link checks that (ADR 0013).
 
     ## Conventions shared with TADS
 
@@ -40,8 +41,8 @@ info:
     Timestamps and timeranges use the TAMS formats (`<sec>:<nsec>`, `[a_b)`).
 
     See the repository's `docs/`: the tag contract is AppNote 0001, the role vocabulary
-    AppNote 0002 (and `vocabulary/roles.json`), the link rules AppNote 0003, and every decision
-    is an ADR.
+    AppNote 0002 (and `vocabulary/roles.json`), registering a channel AppNote 0003, and every
+    decision is an ADR.
   license:
     name: Proprietary — 3adesign
     identifier: LicenseRef-3adesign-Proprietary
@@ -750,13 +751,11 @@ paths:
       summary: Add a link
       operationId: POST_entity_links
       description: |
-        Validated against the entity schema's role declaration (store, kind, `match`,
-        cardinality, key, tier). **The target is looked up in TAMS/TADS** and must exist
-        and satisfy `match` (ADR 0012): 422 `store_not_configured`, `target_missing` or
-        `target_mismatch` otherwise, with the reason, and 503 `store_unavailable` when the
-        store cannot be reached (the link is not written). Written with origin
-        `declared` when the caller is the system that deployed the entity (AppNote 0003),
-        `curated` otherwise. A link that would overlap another of the same
+        Validated against the entity schema's role declaration (store, kind,
+        cardinality, key, tier). **The target is not looked up** (ADR 0013): TEDS does not
+        check that it exists in TAMS/TADS or satisfies the role's `match`, so the client
+        must check both before it writes the link. Written with origin `declared` when the
+        caller is the system that deployed the entity (AppNote 0003), `curated` otherwise. A link that would overlap another of the same
         role/key/tier is a 409.
       tags: [Links]
       requestBody:
@@ -780,10 +779,6 @@ paths:
           $ref: '#/components/responses/404'
         '409':
           $ref: '#/components/responses/409'
-        '422':
-          $ref: '#/components/responses/422'
-        '503':
-          $ref: '#/components/responses/503'
 
   /entities/{entity_id}/links/{link_id}:
     parameters:
@@ -808,8 +803,7 @@ paths:
       operationId: PATCH_entity_link
       description: |
         Only `valid` and `evidence` may change. Closing an open link is setting the end
-        of `valid`. The same overlap rule applies (409). Changing the validity of a
-        `stamped` or `inferred` link makes it `curated`.
+        of `valid`. The same overlap rule applies (409).
       tags: [Links]
       requestBody:
         required: true
@@ -835,9 +829,7 @@ paths:
     delete:
       summary: Remove a link
       operationId: DELETE_entity_link
-      description: |
-        Removes the link. If the linker would recreate it from a stamp or structural
-        evidence, it is instead recorded as **suppressed**, so it stays removed.
+      description: Removes the link. The target in TAMS or TADS is not touched.
       tags: [Links]
       responses:
         '204':
@@ -898,74 +890,6 @@ paths:
         '404':
           $ref: '#/components/responses/404'
 
-  /entities/{entity_id}/suggestions:
-    parameters:
-      - $ref: '#/components/parameters/entity_id'
-    get:
-      summary: Candidate links a person should confirm
-      operationId: GET_entity_suggestions
-      description: Heuristic matches (e.g. label similarity). A suggestion is never a link until a person accepts it.
-      tags: [Links]
-      parameters:
-        - $ref: '#/components/parameters/paged_page'
-        - $ref: '#/components/parameters/paged_limit'
-      responses:
-        '200':
-          description: Suggestions.
-          headers:
-            Link:
-              $ref: '#/components/headers/Link'
-            X-Paging-NextKey:
-              $ref: '#/components/headers/X-Paging-NextKey'
-            X-Paging-Limit:
-              $ref: '#/components/headers/X-Paging-Limit'
-            X-Paging-Count:
-              $ref: '#/components/headers/X-Paging-Count'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: schemas/suggestion.json
-        '404':
-          $ref: '#/components/responses/404'
-
-  /entities/{entity_id}/suggestions/{suggestion_id}:
-    parameters:
-      - $ref: '#/components/parameters/entity_id'
-      - $ref: '#/components/parameters/suggestion_id'
-    post:
-      summary: Accept a suggestion
-      operationId: POST_entity_suggestion_accept
-      description: Creates a `curated` link from the suggestion (the same validation as `POST .../links`).
-      tags: [Links]
-      responses:
-        '201':
-          description: Accepted.
-          content:
-            application/json:
-              schema:
-                $ref: schemas/link.json
-        '403':
-          $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
-        '409':
-          $ref: '#/components/responses/409'
-        '422':
-          $ref: '#/components/responses/422'
-        '503':
-          $ref: '#/components/responses/503'
-    delete:
-      summary: Reject a suggestion
-      operationId: DELETE_entity_suggestion
-      description: Rejected suggestions are remembered, so the same candidate is not suggested again.
-      tags: [Links]
-      responses:
-        '204':
-          description: Rejected.
-        '404':
-          $ref: '#/components/responses/404'
 
   /links:
     head:
@@ -1365,12 +1289,6 @@ components:
       required: true
       schema:
         $ref: schemas/uuid.json
-    suggestion_id:
-      name: suggestion_id
-      in: path
-      required: true
-      schema:
-        $ref: schemas/uuid.json
     webhook_id:
       name: webhook_id
       in: path
@@ -1561,20 +1479,6 @@ components:
             $ref: schemas/error.json
     '412':
       description: The resource changed since the given `If-Match`.
-      content:
-        application/json:
-          schema:
-            $ref: schemas/error.json
-    '422':
-      description: The link's store is not configured, its target does not exist there, or the target does not satisfy the role's `match` (ADR 0012).
-      content:
-        application/json:
-          schema:
-            $ref: schemas/error.json
-          example:
-            $ref: examples/response-422.json
-    '503':
-      description: The link's store could not be reached, or answered with a server error; nothing was written (ADR 0012).
       content:
         application/json:
           schema:
