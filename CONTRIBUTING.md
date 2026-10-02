@@ -27,5 +27,5 @@ Every merge request needs a green pipeline to merge.
 
 ## Contributor Licence Agreement
 
-TEDS is not yet published, and its licence has not yet been chosen (see [LICENCE.md](./LICENCE.md)).
-The contributor licence arrangements will be set out here when it is.
+TEDS is published under the Apache License, Version 2.0 (see [LICENCE.md](./LICENCE.md)).
+Unless you state otherwise, any contribution you intentionally submit for inclusion in TEDS is licensed under the same terms, as set out in section 5 of the licence, without any additional terms or conditions.

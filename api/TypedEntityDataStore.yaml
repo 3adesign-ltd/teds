@@ -44,11 +44,11 @@ info:
     AppNote 0002 (and `vocabulary/roles.json`), registering a channel AppNote 0003, and every
     decision is an ADR.
   license:
-    name: Proprietary — 3adesign
-    identifier: LicenseRef-3adesign-Proprietary
+    name: Apache 2.0
+    identifier: Apache-2.0
   contact:
     name: 3adesign
-    url: https://gitlab.3adesign.co.uk/phrame/teds
+    url: https://github.com/3adesign-ltd/teds
 servers:
   - url: http://localhost:4070
     description: Local development instance
